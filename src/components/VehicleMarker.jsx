@@ -1,7 +1,7 @@
 import React, { memo, useMemo, useState, useEffect, useRef } from 'react';
 import { Marker } from 'react-leaflet';
 import { createVehicleIcon, formatDelay, parseDelaySeconds, getHeadingDegrees } from '../utils/vehicleHelpers';
-import { getRouteId } from '../utils/fileManager';
+import { getRouteShortName } from '../utils/fileManager';
 
 const VehicleMarker = memo(function VehicleMarker({ vehicle, onSelect, compactIcons, colorOverride }) {
   const lat = vehicle.lat;
@@ -63,6 +63,7 @@ const VehicleMarker = memo(function VehicleMarker({ vehicle, onSelect, compactIc
     };
   }, []);
 
+  const tripId = vehicle.tripID;
   const lineId = vehicle.lineRef || '-';
   const vehicleId = vehicle.id.split('_').pop();
   const speed = vehicle.speed;
@@ -75,6 +76,7 @@ const VehicleMarker = memo(function VehicleMarker({ vehicle, onSelect, compactIc
   const icon = useMemo(() => createVehicleIcon({ 
     line: lineId, 
     lineNumber,
+    tripId,
     vehicleId,
     speed, 
     delayText, 

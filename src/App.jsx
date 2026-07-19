@@ -12,9 +12,10 @@ import VehicleSidebar from './components/VehicleSidebar';
 import StopSidebar from './components/StopSidebar';
 import StopLayer from './components/StopLayer';
 import { fetchVehicles, fetchStops, fetchLines } from './utils/httpRequests';
-import { initTripData, getRouteId } from './utils/fileManager';
+import { initStaticData, getRouteShortName } from './utils/fileManager';
 
 function App() {
+  const [city, setCity] = useState('tampere');
   const [apiStreamStatus, setApiSteramStatus] = useState(false);
   const [vehicles, setVehicles] = useState({});
   const [stops, setStops] = useState([]);
@@ -30,18 +31,21 @@ function App() {
   const [activeStopLines, setActiveStopLines] = useState([]);
   const [coloredVehicles, setColoredVehicles] = useState({});
 
-  /* 1. Haetaan ajoneuvot 2s välein
-      Päivitetään valitun ajoneuvon tiedot lennosta
-      setSelectedVehicle(prevSelected => {
-        if (!prevSelected) return null;
-        const updated = data.find(v => v.monitoredVehicleJourney.vehicleRef === prevSelected.vehicleRef);
-        return updated ? structuredClone(updated.monitoredVehicleJourney) : prevSelected; */
-
   useEffect(() => {
-    async function init() {
-      await initTripData();
-    }
-    init();
+    const loadCityData = async () => {
+      // 1. Alustetaan kyseisen kaupungin reittivälimuisti (trips)
+      await initStaticData(city);
+      
+      // 2. Haetaan kyseisen kaupungin pysäkit tekstitiedostosta
+      const stopsData = await fetchStops(city);
+      setStops(stopsData);
+      
+      setSelectedStop(null);
+      setVehicles({});
+      //startVehicleDataStream();
+    };
+
+    loadCityData();
 
     // Digitransitin WSS-osoite toimii suoraan selaimessa viteseillä
     //const MQTT_URL = 'wss://mqtt.hsl.fi:443/';
@@ -53,8 +57,8 @@ function App() {
     client.on('connect', () => {
       setApiSteramStatus(true);
       // Tilataan haluttu kanava. Voit käyttää esim. /hfp/v2/journey/ongoing/vp/bus/#
-      //const topic = '/hfp/v2/journey/ongoing/vp/bus/#';
-      const topic = '/gtfsrt/vp/tampere/#'
+      //const topic = '/hfp/v2/journey/ongoing/vp/bus/#'; //hsl
+      const topic = `/gtfsrt/vp/${city}/#`
       
       client.subscribe(topic, (err) => {
         if (!err) console.log(`Tilattu kanava: ${topic}`);
@@ -75,7 +79,7 @@ function App() {
         feed.entity.forEach((entity) => {
           if (entity.vehicle) {
             const v = entity.vehicle;
-            const tripID = v.trip?.tripId; //'reitti'//v.trip?.routeId; // Linjan tunnus, esim. "8A"
+            const tripID = v.trip?.tripId;
             const bussiId = v.vehicle?.id;  // Bussin oma ID
             const label = v.vehicle?.label;
             
@@ -91,7 +95,7 @@ function App() {
                 paivitettavatBussit[bussiId] = {
                   id: bussiId,
                   tripID: tripID,
-                  lineNumber: getRouteId(tripID),
+                  lineNumber: getRouteShortName(tripID),
                   lat: v.position.latitude,
                   lng: v.position.longitude,
                   speed: v.position.speed ? (v.position.speed * 3.6).toFixed(0) : 0,
@@ -127,7 +131,7 @@ function App() {
         client.end();
       }
     };
-  }, []);
+  }, [city]);
 
   // 2. Haetaan pysäkit kerran
   useEffect(() => {
@@ -251,6 +255,14 @@ function App() {
           allLinesHidden={allLinesHidden}
         />
       )}
+
+      {/* Yksinkertainen valikko kaupungin vaihtamiseen */}
+      <div className="city-selector">
+        <button onClick={() => setCity('tampere')} className={city === 'tampere' ? 'active' : ''}>Tampere</button>
+        <button onClick={() => setCity('LINKKI')} className={city === 'LINKKI' ? 'active' : ''}>LINKKI</button>
+        <button onClick={() => setCity('FOLI')} className={city === 'FOLI' ? 'active' : ''}>FOLI</button>
+        <button onClick={() => setCity('OULU')} className={city === 'OULU' ? 'active' : ''}>OULU</button>
+      </div>
 
       {/* Pääalue (Kartta + Sivupalkki) */}
       <div className="main-content">

@@ -1,4 +1,5 @@
 import L from 'leaflet';
+import { getRouteColor } from './fileManager';
 
 const COLORS = {
   bus: '#1a4b8fe5',        // Nyssen sininen busseille 1a4a8f 0f4cb5dc
@@ -42,10 +43,10 @@ export const getHeadingDegrees = (vehicle) => {
   return vehicle.bearing || 0;
 };
 
-export const createVehicleIcon = ({ line, lineNumber, vehicleId, speed, delayText, delaySeconds, heading, compactIcons, colorOverride }) => {
+export const createVehicleIcon = ({ line, lineNumber, tripId, vehicleId, speed, delayText, delaySeconds, heading, compactIcons, colorOverride }) => {
   const rotation = heading || 0;
   const isTram = TRAM_LINES.includes(String(lineNumber));
-  const backgroundColor = (isTram ? COLORS.tram : COLORS.bus);
+  const backgroundColor = getRouteColor(tripId); //(isTram ? COLORS.tram : COLORS.bus);
 
   //const isSmallIcon = window.innerWidth < 500;
 
