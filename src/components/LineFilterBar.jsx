@@ -1,15 +1,7 @@
 import React from 'react';
 
-// Ratikkalinjat värikoodausta varten
-const TRAM_LINES = ['1', '3'];
-
-// Teeman värit
 const COLORS = {
-  bus: '#0f4db5',      // Nyssen sininen busseille
-  tram: '#b40006',     // Ratikan punainen
-  bgHidden: '#101f33', // Piilotetun napin tausta tummassa teemassa
-  borderBus: '#3f6fe8',
-  borderTram: '#ff5c5c'
+  bgHidden: '#101f33', // Piilotetun napin tausta
 };
 
 function LineFilterBar({ activeLines, hiddenLines, toggleLineVisibility, toggleAllLines, allLinesHidden }) {
@@ -51,11 +43,12 @@ function LineFilterBar({ activeLines, hiddenLines, toggleLineVisibility, toggleA
         {activeLines.map((lineObj) => {
           const line = lineObj.name; 
           const isHidden = hiddenLines.has(line);
-          const isTram = TRAM_LINES.includes(String(line).trim());
-          
-          // Valitaan värit ajoneuvotyypin mukaan
-          const mainColor = isTram ? COLORS.tram : COLORS.bus;
-          const borderColor = isTram ? COLORS.borderTram : COLORS.borderBus;
+
+          const customColor = lineObj.route_color ? `#${lineObj.route_color.replace('#', '')}af` : '#0f4db5';
+          const customBorderColor = lineObj.route_color ? `#${lineObj.route_color.replace('#', '')}` : '#0f4db5';
+
+          const mainColor = customColor;
+          const borderColor = customBorderColor;
 
           return (
             <button

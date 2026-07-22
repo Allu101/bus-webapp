@@ -11,8 +11,9 @@ import VehicleMarker from './components/VehicleMarker';
 import VehicleSidebar from './components/VehicleSidebar';
 import StopSidebar from './components/StopSidebar';
 import StopLayer from './components/StopLayer';
-import { fetchVehicles, fetchStops, fetchLines } from './utils/httpRequests';
+import { fetchStops, fetchLines } from './utils/httpRequests';
 import { initStaticData, getRouteShortName } from './utils/fileManager';
+import { CITIES } from './config/cityConfig';
 
 function App() {
   const [city, setCity] = useState('tampere');
@@ -34,31 +35,32 @@ function App() {
   useEffect(() => {
     const loadCityData = async () => {
       // 1. Alustetaan kyseisen kaupungin reittivälimuisti (trips)
-      await initStaticData(city);
+      await initStaticData(CITIES[city]);
       
       // 2. Haetaan kyseisen kaupungin pysäkit tekstitiedostosta
-      const stopsData = await fetchStops(city);
+      const stopsData = await fetchStops(CITIES[city]);
       setStops(stopsData);
+
+      fetchLines(CITIES[city]).then(setLines).catch(err => console.error("Linjavirhe:", err));
       
       setSelectedStop(null);
       setVehicles({});
-      //startVehicleDataStream();
     };
 
     loadCityData();
 
     // Digitransitin WSS-osoite toimii suoraan selaimessa viteseillä
     //const MQTT_URL = 'wss://mqtt.hsl.fi:443/';
-    const MQTT_URL = 'wss://mqtt.digitransit.fi:443/';
+    //const MQTT_URL = 'wss://mqtt.digitransit.fi:443/';
     
     console.log('Yhdistetään MQTT-palvelimeen...');
-    const client = mqtt.connect(MQTT_URL);
+    const client = mqtt.connect(CITIES[city].mqtt_url);
 
     client.on('connect', () => {
       setApiSteramStatus(true);
       // Tilataan haluttu kanava. Voit käyttää esim. /hfp/v2/journey/ongoing/vp/bus/#
       //const topic = '/hfp/v2/journey/ongoing/vp/bus/#'; //hsl
-      const topic = `/gtfsrt/vp/${city}/#`
+      const topic = CITIES[city].mqtt_topic; //`/gtfsrt/vp/${city}/#`
       
       client.subscribe(topic, (err) => {
         if (!err) console.log(`Tilattu kanava: ${topic}`);
@@ -84,7 +86,7 @@ function App() {
             const label = v.vehicle?.label;
             
             const edellinenAika = viimeisimmätPaivitykset[bussiId] || 0;
-            if (bussiId) {
+            if (bussiId && tripID) {
           
               // Bussikohtainen kuristus: päästetään tämän yksittäisen auton data läpi vain 3s välein
               /*const edellinenAika = viimeisimmätPaivitykset[bussiId] || 0;
@@ -132,16 +134,6 @@ function App() {
       }
     };
   }, [city]);
-
-  // 2. Haetaan pysäkit kerran
-  useEffect(() => {
-    fetchStops().then(setStops).catch(err => console.error("Pysäkkivirhe:", err));
-  }, []);
-
-  // 3. Haetaan viralliset linjat kerran
-  useEffect(() => {
-    fetchLines().then(setLines).catch(err => console.error("Linjavirhe:", err));
-  }, []);
 
   const handleCloseSidebar = () => {
     setSelectedStop(null);
@@ -206,7 +198,6 @@ function App() {
     }
 
     // 3. Oletuksena näytetään kaikki
-    //return vehicles;
     return vehicles;
   };
 
@@ -222,6 +213,23 @@ function App() {
         >
           {showFilters ? 'Sulje Linjat' : 'Suodata Linjoja'}
         </button>
+
+        <div className="city-selector">
+          <label htmlFor="city-select" className="city-label">Kaupunki:</label>
+          <select
+            id="city-select"
+            value={city}
+            onChange={(e) => setCity(e.target.value)}
+            className="city-dropdown"
+          >
+            {Object.values(CITIES).map((city) => (
+              <option key={city.id} value={city.id}>
+                {city.displayName}
+              </option>
+            ))}
+          </select>
+        </div>
+        
         <button 
           className={`nav-btn ${showSettings ? 'active' : ''}`}
           onClick={() => { setShowSettings(!showSettings); setShowFilters(false); }}
@@ -256,14 +264,6 @@ function App() {
         />
       )}
 
-      {/* Yksinkertainen valikko kaupungin vaihtamiseen */}
-      <div className="city-selector">
-        <button onClick={() => setCity('tampere')} className={city === 'tampere' ? 'active' : ''}>Tampere</button>
-        <button onClick={() => setCity('LINKKI')} className={city === 'LINKKI' ? 'active' : ''}>LINKKI</button>
-        <button onClick={() => setCity('FOLI')} className={city === 'FOLI' ? 'active' : ''}>FOLI</button>
-        <button onClick={() => setCity('OULU')} className={city === 'OULU' ? 'active' : ''}>OULU</button>
-      </div>
-
       {/* Pääalue (Kartta + Sivupalkki) */}
       <div className="main-content">
         <Map 
@@ -274,6 +274,7 @@ function App() {
           coloredVehicles={coloredVehicles}
           compactIcons={compactIcons}
           onVehicleSelect={handleLinkToVehicle}
+          city={CITIES[city]}
         />
 
         {/* Bussi Sivupalkki */}

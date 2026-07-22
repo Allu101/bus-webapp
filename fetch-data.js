@@ -3,6 +3,7 @@ import AdmZip from 'adm-zip';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { CITIES } from './src/config/cityConfig.js';
 
 // ES-moduulien __dirname-ratkaisu
 const __filename = fileURLToPath(import.meta.url);
@@ -23,14 +24,15 @@ const filesToExtract = ['stops.txt', 'trips.txt', 'transfers.txt', 'routes.txt']
 
 async function downloadAndExtractAll() {
   // Käydään kaupungit läpi yksi kerrallaan
-  for (const city of cities) {
-    console.log(`\n--- Aloitetaan kaupunki: ${city.toUpperCase()} ---`);
+  Object.values(CITIES).forEach(async (cityConfig) => {
+  //for (const city of cities) {
+    console.log(`\n--- Aloitetaan kaupunki: ${cityConfig.id.toUpperCase()} ---`);
     
     // Rakennetaan URL dynaamisesti kaupungin nimen mukaan
-    const url = `https://api.digitransit.fi/routing-data/v3/waltti/${city}-gtfs.zip`;
+    const url = `https://api.digitransit.fi/routing-data/v3/waltti/${cityConfig.gtfsFolder}-gtfs.zip`;
     
     // Määritetään oma alikansio tälle kaupungille (esim. public/data/tampere)
-    const cityDir = path.join(__dirname, 'public', 'data', city);
+    const cityDir = path.join(__dirname, 'public', 'data', cityConfig.gtfsFolder);
 
     try {
       console.log(`Ladataan pakettia osoitteesta: ${url}`);
@@ -39,7 +41,7 @@ async function downloadAndExtractAll() {
         headers: { "digitransit-subscription-key": apiKey }
       });
 
-      console.log("Puretaan zip-pakettia muistissa...");
+      console.log(`Puretaan ${cityConfig.gtfsFolder} zip-pakettia muistissa...`);
       const zip = new AdmZip(response.data);
       const zipEntries = zip.getEntries();
 
@@ -55,20 +57,20 @@ async function downloadAndExtractAll() {
         if (entry) {
           const outputFile = path.join(cityDir, fileName);
           fs.writeFileSync(outputFile, entry.getData());
-          console.log(` Tallennettu: public/data/${city}/${fileName}`);
+          console.log(` Tallennettu: public/data/${cityConfig.gtfsFolder}/${fileName}`);
         } else {
-          console.warn(`⚠️ Varoitus: Tiedostoa ${fileName} ei löytynyt ${city}-paketista.`);
+          console.warn(`⚠️ Varoitus: Tiedostoa ${fileName} ei löytynyt ${cityConfig.gtfsFolder}-paketista.`);
         }
       }
 
-      console.log(`Kaupunki ${city} valmis!`);
+      console.log(`Kaupunki ${cityConfig.gtfsFolder} valmis!`);
 
     } catch (error) {
       // Käytetään try-catchia silmukan sisällä, jotta yhden kaupungin virhe (esim. väärä url/nimi)
       // ei kaada koko ajoa, vaan skripti jatkaa muiden kaupunkien lataamista.
-      console.error(`❌ Virhe kaupungin ${city} kohdalla:`, error.message);
+      console.error(`❌ Virhe kaupungin ${cityConfig.id} - ${cityConfig.gtfsFolder} kohdalla:`, error.message);
     }
-  }
+  });
   
   console.log("\n Kaikki kaupungit käyty läpi!");
 }

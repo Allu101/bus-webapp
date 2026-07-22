@@ -6,25 +6,26 @@ let currentCachedCity = null;
  * Ladataan ja parsitaan tiedostot muistiin. 
  * Tämä suoritetaan vain kerran sovelluksen käynnistyessä tai kaupungin vaihtuessa.
  */
-export const initStaticData = async (city = 'tampere') => {
+export const initStaticData = async (cityConfig) => {
+  const cityFolderName = cityConfig.gtfsFolder;
   // Jos tämän kaupungin data on jo ladattu, ei tehdä mitään
-  if (dataCache.size > 0 && currentCachedCity === city) return;
+  if (dataCache.size > 0 && currentCachedCity === cityFolderName) return;
 
   // Jos kaupunki vaihtuu, tyhjennetään vanhan kaupungin välimuisti
-  if (currentCachedCity !== city) {
+  if (currentCachedCity !== cityFolderName) {
     dataCache.clear();
-    currentCachedCity = city;
+    currentCachedCity = cityFolderName;
   }
 
   try {
     // Ladataan molemmat tiedostot rinnakkain suorituskyvyn parantamiseksi
     const [tripsResponse, routesResponse] = await Promise.all([
-      fetch(`/data/${city}/trips.txt`),
-      fetch(`/data/${city}/routes.txt`)
+      fetch(`/data/${cityFolderName}/trips.txt`),
+      fetch(`/data/${cityFolderName}/routes.txt`)
     ]);
 
-    if (!tripsResponse.ok) throw new Error(`Trip-datan haku epäonnistui kaupungille: ${city}`);
-    if (!routesResponse.ok) throw new Error(`Routes-datan haku epäonnistui kaupungille: ${city}`);
+    if (!tripsResponse.ok) throw new Error(`Trip-datan haku epäonnistui kaupungille: ${cityConfig.id}`);
+    if (!routesResponse.ok) throw new Error(`Routes-datan haku epäonnistui kaupungille: ${cityConfig.id}`);
 
     const [tripsText, routesText] = await Promise.all([
       tripsResponse.text(),
@@ -64,7 +65,7 @@ export const initStaticData = async (city = 'tampere') => {
     const routeIdx = headers.indexOf('route_id');
 
     if (tripIdx === -1 || routeIdx === -1) {
-      console.error(`Puuttuvia sarakkeita kaupungin ${city} trips.txt-tiedostossa`);
+      console.error(`Puuttuvia sarakkeita kaupungin ${cityConfig.id} trips.txt-tiedostossa`);
       return;
     }
 
@@ -81,9 +82,9 @@ export const initStaticData = async (city = 'tampere') => {
       // Tallennetaan välimuistiin suoraan trip_id -> linjanumero, väri
       dataCache.set(tripId, {routeName: routeShortName, color: routeColor });
     }
-    console.log(`Välimuisti alustettu kaupungille: ${city}. Ladattu ${dataCache.size} trippiä linjatunnuksilla.`);
+    console.log(`Välimuisti alustettu kaupungille: ${cityConfig.id}. Ladattu ${dataCache.size} trippiä linjatunnuksilla.`);
   } catch (error) {
-    console.error(`Virhe alustettaessa dataa kaupungille ${city}:`, error);
+    console.error(`Virhe alustettaessa dataa kaupungille ${cityConfig.id}:`, error);
   }
 };
 

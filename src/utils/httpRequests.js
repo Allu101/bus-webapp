@@ -1,19 +1,11 @@
 import axios from 'axios';
 
-// Haetaan ajoneuvot (App.jsx)
-export const fetchVehicles = async () => {
-  const response = await axios.get(
-    '/api-nysse/journeys/api/1/vehicle-activity?exclude-fields=monitoredVehicleJourney.onwardCalls,recordedAtTime,validUntilTime,monitoredVehicleJourney.operatorRef'
-  );
-  return response.data?.body || [];
-};
-
 // Haetaan pysäkit ja esikäsitellään koordinaatit (App.jsx)
-export const fetchStops = async (city = 'tampere') => {
+export const fetchStops = async (cityConfig) => {
   try {
     // Haetaan paikallinen stops.txt valitun kaupungin kansiosta
-    const response = await fetch(`/data/${city}/stops.txt`);
-    if (!response.ok) throw new Error(`Pysäkkidatan haku epäonnistui kaupungille: ${city}`);
+    const response = await fetch(`/data/${cityConfig.gtfsFolder}/stops.txt`);
+    if (!response.ok) throw new Error(`Pysäkkidatan haku epäonnistui kaupungille: ${cityConfig.id}`);
     
     const text = await response.text();
     
@@ -56,19 +48,77 @@ export const fetchStops = async (city = 'tampere') => {
 
     return parsedStops;
   } catch (error) {
-    console.error(`Virhe ladattaessa pysäkkejä kaupungille ${city}:`, error);
+    console.error(`Virhe ladattaessa pysäkkejä kaupungille ${cityConfig.id}:`, error);
     return [];
   }
 };
 
 // Haetaan linjat aakkos/numerojärjestyksessä (App.jsx)
-export const fetchLines = async () => {
-  const response = await axios.get('/api-nysse/journeys/api/1/lines');
-  if (!response.data?.body) return [];
+// Apufunktio CSV-rivin parsintaan, joka käsittelee lainausmerkit ("") oikein
+const parseCSVLine = (line) => {
+  const result = [];
+  let current = '';
+  let inQuotes = false;
 
-  return response.data.body.sort((a, b) =>
-    a.name.localeCompare(b.name, undefined, { numeric: true })
-  );
+  for (let i = 0; i < line.length; i++) {
+    const char = line[i];
+    if (char === '"') {
+      inQuotes = !inQuotes;
+    } else if (char === ',' && !inQuotes) {
+      result.push(current.trim().replace(/^"|"$/g, ''));
+      current = '';
+    } else {
+      current += char;
+    }
+  }
+  result.push(current.trim().replace(/^"|"$/g, ''));
+  return result;
+};
+
+export const fetchLines = async (cityConfig) => {
+  try {
+    const response = await fetch(`/data/${cityConfig.gtfsFolder}/routes.txt`);
+    if (!response.ok) return [];
+
+    const text = await response.text();
+    const rows = text.split('\n').map(row => row.replace('\r', '')).filter(Boolean);
+    if (rows.length < 2) return [];
+
+    // Otsikkorivi sarakkeiden hakemiseen
+    const headers = parseCSVLine(rows[0]);
+    const idIdx = headers.indexOf('route_id');
+    const shortNameIdx = headers.indexOf('route_short_name');
+    const colorIdx = headers.indexOf('route_color');
+    const textColorIdx = headers.indexOf('route_text_color');
+
+    const linesList = [];
+    const seenShortNames = new Set(); // Estetään samojen linjojen monistuminen
+
+    for (let i = 1; i < rows.length; i++) {
+      const cols = parseCSVLine(rows[i]);
+      if (cols.length <= 1) continue;
+
+      const shortName = cols[shortNameIdx] || cols[idIdx];
+      if (!shortName || seenShortNames.has(shortName)) continue;
+
+      seenShortNames.add(shortName);
+
+      linesList.push({
+        route_id: cols[idIdx] || '',
+        route_short_name: shortName,
+        name: shortName, // Täydellinen yhteensopivuus vanhaan koodiin
+        route_color: cols[colorIdx] || '',
+      });
+    }
+
+    // Järjestetään samalla logiikalla kuin alkuperäisessä koodissa
+    return linesList.sort((a, b) =>
+      a.route_short_name.localeCompare(b.route_short_name, undefined, { numeric: true })
+    );
+  } catch (error) {
+    console.error('Virhe ladattaessa linjoja routes.txt-tiedostosta:', error);
+    return [];
+  }
 };
 
 // Haetaan pysäkkikohtainen live-data (StopSidebar.jsx syvähaku)
