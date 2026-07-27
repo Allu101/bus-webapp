@@ -21,7 +21,7 @@ function StopSidebar({ stopCode, stopName, onClose, onSelectVehicle, selectedSto
     setSelectedLines([]);
   }, [stopCode]);
 
-  useEffect(() => {
+  /*useEffect(() => {
     if (!selectedStop) return;
 
     const fetchDeepData = async () => {
@@ -36,7 +36,7 @@ function StopSidebar({ stopCode, stopName, onClose, onSelectVehicle, selectedSto
     fetchDeepData();
     const interval = setInterval(fetchDeepData, UPDATE_INTERVAL);
     return () => clearInterval(interval);
-  }, [selectedStop]);
+  }, [selectedStop]);*/
 
   useEffect(() => {
     if (!stopCode) return;
@@ -58,8 +58,8 @@ function StopSidebar({ stopCode, stopName, onClose, onSelectVehicle, selectedSto
     return () => clearInterval(interval);
   }, [stopCode]);
 
-  /*useEffect(() => {
-    if (!schedule?.stoptimesWithoutPatterns || liveVehiclesForStop.length === 0) {
+  useEffect(() => {
+    if (!schedule?.stoptimesWithoutPatterns /*|| liveVehiclesForStop.length === 0*/) {
       setColoredVehicles({});
       return;
     }
@@ -73,7 +73,7 @@ function StopSidebar({ stopCode, stopName, onClose, onSelectVehicle, selectedSto
 
       const liveVehicle = findMatchingVehicle(stoptime);
       if (liveVehicle) {
-        const vRef = liveVehicle.monitoredVehicleJourney.vehicleRef;
+        const vRef = liveVehicle.tripID;
         // Jos autolle ei ole vielä annettu väriä (sama auto voi teoriassa olla kahdella rivillä)
         if (!newColorMapping[vRef]) {
           newColorMapping[vRef] = NEXT_VEHICLE_COLORS[colorIndex];
@@ -83,7 +83,7 @@ function StopSidebar({ stopCode, stopName, onClose, onSelectVehicle, selectedSto
     }
 
     setColoredVehicles(newColorMapping);
-  }, [schedule, liveVehiclesForStop]);*/
+  }, [schedule]);
 
   const getStopDistance = (liveVehicle) => {
     if (!liveVehicle) return null;
@@ -109,7 +109,7 @@ function StopSidebar({ stopCode, stopName, onClose, onSelectVehicle, selectedSto
   // Apufunktio tarkistamaan, mikä väri tälle autolle kuuluu
   const getVehicleColor = (liveVehicle) => {
     if (!liveVehicle) return null;
-    const vRef = liveVehicle.monitoredVehicleJourney.vehicleRef;
+    const vRef = liveVehicle.tripID;
     
     // Etsitään väri NEXT_VEHICLE_COLORS-listasta vertaamalla lennosta (tai suoraan objektista)
     // Koska tila päivittyy asynkronisesti, lasketaan se tässä varmuuden vuoksi suoraan:
@@ -117,7 +117,8 @@ function StopSidebar({ stopCode, stopName, onClose, onSelectVehicle, selectedSto
     for (const stoptime of (schedule?.stoptimesWithoutPatterns || [])) {
       const matched = findMatchingVehicle(stoptime);
       if (matched) {
-        if (matched.monitoredVehicleJourney.vehicleRef === vRef) {
+        if (colorIndex >= NEXT_VEHICLE_COLORS.length) break;
+        if (matched.tripID === vRef) {
           return NEXT_VEHICLE_COLORS[colorIndex];
         }
         colorIndex++;
@@ -133,39 +134,6 @@ function StopSidebar({ stopCode, stopName, onClose, onSelectVehicle, selectedSto
     return Object.values(vehicles).find(v => {
       return stoptime.tripId?.split(':')[1] === v.tripID;
     })
-    
-    // Digitransitin aikataulun saapumisaika sekunteina (esim. 72000 = 20:00:00)
-    /*const scheduleRealTimeDep = stoptime.realtimeDeparture;
-
-    // Etsitään auto, joka täsmää linjaan JA on tulossa tälle pysäkille
-    return liveVehiclesForStop.find(v => {
-      const journey = v.monitoredVehicleJourney;
-      
-      if (journey.lineRef !== lineNum) return false;
-
-      // Tarkistus 2: Löydetään oikea pysäkkikäynti (onwardCall)
-      const call = journey.onwardCalls?.find(
-        c => c.stopPointRef === selectedStop.url
-      );
-
-      if (!call) return false;
-      
-      // Tarkistus 3: Aikatäsmäys (onko kyseessä juuri tämä vuoro?)
-      // Muutetaan ISO-aika (esim. 2026-07-05T20:15:00) sekunneiksi keskiyöstä
-      const date = new Date(call.expectedDepartureTime);
-      let departureSeconds = date.getHours() * 3600 + date.getMinutes() * 60 + date.getSeconds();
-
-      // Jos Digitransitin aikatauluaika on yli vuorokauden (86400s) ja auton oma kello on 
-      // jo pyörähtänyt aamuyön puolelle (esim. alle 6 tuntia keskiyöstä), lisätään auton aikaan 24 tuntia
-      if (scheduleRealTimeDep >= 86400 && departureSeconds < 21600) {
-        departureSeconds += 86400;
-      }
-
-      let vehicleScheduledSeconds = departureSeconds;
-
-      // Jos aikataulu ja auton ennuste täsmäävät esim. 3 minuutin sisään, se on se auto!
-      return Math.abs(vehicleScheduledSeconds - scheduleRealTimeDep) < 180;
-    });*/
   };
 
   const toggleLineFilter = (lineShortName) => {
@@ -281,8 +249,7 @@ function StopSidebar({ stopCode, stopName, onClose, onSelectVehicle, selectedSto
             const isRealtime = stoptime.realtime;
             const liveVehicle = findMatchingVehicle(stoptime);
 
-            // Lasketaan viive sekunteina
-            const bonusColor = null; //getVehicleColor(liveVehicle);
+            const bonusColor = getVehicleColor(liveVehicle);
             const delaySeconds = stoptime.realtimeDeparture - stoptime.scheduledDeparture;
 
             const formattedRealTimeDep = formatDigitransitTime(stoptime.realtimeDeparture);

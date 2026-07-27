@@ -24,7 +24,7 @@ function BusMap({ stops, onStopSelect, selectedStop, vehiclesToDisplay, coloredV
         <StopLayer stops={stops} onStopSelect={onStopSelect} selectedStop={selectedStop} />
 
         {Object.values(vehiclesToDisplay).map((v, index) => {
-          const vRef = v.vehicleRef;
+          const vRef = v.tripID;
           const assignedColor = coloredVehicles && coloredVehicles[vRef];
           return (
             <VehicleMarker
