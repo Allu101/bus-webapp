@@ -126,7 +126,6 @@ function App() {
       }
     });
 
-    // CRITICAL CLEANUP: Kun komponentti poistuu ruudulta, suljetaan yhteys
     return () => {
       console.log('Suljetaan MQTT-yhteys...');
       if (client) {

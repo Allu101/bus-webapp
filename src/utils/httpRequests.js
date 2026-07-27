@@ -120,15 +120,3 @@ export const fetchLines = async (cityConfig) => {
     return [];
   }
 };
-
-// Haetaan pysäkkikohtainen live-data (StopSidebar.jsx syvähaku)
-export const fetchLiveVehiclesForStop = async (stopUrl) => {
-  const response = await axios.get('/api-nysse/journeys/api/1/vehicle-activity');
-  const json = await response.data;
-  if (!json.body) return [];
-
-  return json.body.filter(v => {
-    const calls = v.monitoredVehicleJourney.onwardCalls;
-    return calls && calls.some(call => call.stopPointRef === stopUrl);
-  });
-};

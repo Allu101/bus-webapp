@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { fetchStopSchedule, formatDigitransitTime } from '../utils/stopService';
-import { fetchLiveVehiclesForStop } from '../utils/httpRequests';
 import { parseDelaySeconds } from '../utils/vehicleHelpers';
 
 //const NEXT_VEHICLE_COLORS = ['#3498db', '#e67e22', '#9b59b6', '#e74c3c', '#f1c40f'];
@@ -14,29 +13,11 @@ function StopSidebar({ stopCode, stopName, onClose, onSelectVehicle, selectedSto
   const [schedule, setSchedule] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  const [liveVehiclesForStop, setLiveVehiclesForStop] = useState([]);
   const [selectedLines, setSelectedLines] = useState([]);
 
   useEffect(() => {
     setSelectedLines([]);
   }, [stopCode]);
-
-  /*useEffect(() => {
-    if (!selectedStop) return;
-
-    const fetchDeepData = async () => {
-      try {
-        const matchingVehicles = await fetchLiveVehiclesForStop(selectedStop.url);
-        setLiveVehiclesForStop(structuredClone(matchingVehicles));
-      } catch (err) {
-        console.error("Syvähaku epäonnistui:", err);
-      }
-    };
-
-    fetchDeepData();
-    const interval = setInterval(fetchDeepData, UPDATE_INTERVAL);
-    return () => clearInterval(interval);
-  }, [selectedStop]);*/
 
   useEffect(() => {
     if (!stopCode) return;
@@ -59,7 +40,7 @@ function StopSidebar({ stopCode, stopName, onClose, onSelectVehicle, selectedSto
   }, [stopCode]);
 
   useEffect(() => {
-    if (!schedule?.stoptimesWithoutPatterns /*|| liveVehiclesForStop.length === 0*/) {
+    if (!schedule?.stoptimesWithoutPatterns) {
       setColoredVehicles({});
       return;
     }

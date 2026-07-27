@@ -46,7 +46,7 @@ export const getHeadingDegrees = (vehicle) => {
 export const createVehicleIcon = ({ line, lineNumber, tripId, vehicleId, speed, delayText, delaySeconds, heading, compactIcons, colorOverride }) => {
   const rotation = heading || 0;
   const isTram = TRAM_LINES.includes(String(lineNumber));
-  const backgroundColor = getRouteColor(tripId); //(isTram ? COLORS.tram : COLORS.bus);
+  const backgroundColor = getRouteColor(tripId);
 
   //const isSmallIcon = window.innerWidth < 500;
 
@@ -134,30 +134,4 @@ export const createVehicleIcon = ({ line, lineNumber, tripId, vehicleId, speed, 
     iconSize: [size, size],
     iconAnchor: [size / 2, size / 2] 
   });
-
-  /*return L.divIcon({
-    className: 'custom-vehicle-icon',
-    html: `
-      <div style="
-        display: inline-flex;
-        flex-direction: column;
-        align-items: stretch;
-        justify-content: center;
-        background-color: ${backgroundColor};
-        color: white;
-        border-radius: 20px;
-        padding: ${compactIcons ? '4px 4px' : '6px 8px'};
-        text-align: left;
-        border: 1px solid rgba(255,255,255,0.96);
-        min-width: ${iconWidth}px;
-        min-height: ${iconHeight}px;
-        font-family: sans-serif;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-      ">
-        ${innerHTML}
-      </div>
-    `,
-    iconSize: [iconWidth, iconHeight],
-    iconAnchor: [anchor, anchor]
-  });*/
 };
