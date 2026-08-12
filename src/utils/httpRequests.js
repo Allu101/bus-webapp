@@ -38,7 +38,7 @@ export const fetchStops = async (cityConfig) => {
         parsedStops.push({
           id: values[idIdx],
           // TÄRKEÄ: Mäppäätään stop_code -> shortName, jotta CircleMarker löytää avaimen!
-          shortName: values[codeIdx] || values[idIdx], 
+          shortName: values[idIdx] || values[codeIdx],
           name: values[nameIdx],
           lat: lat,
           lng: lng

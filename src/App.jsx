@@ -298,6 +298,7 @@ function App() {
               setActiveStopLines={setActiveStopLines}
               setColoredVehicles={setColoredVehicles}
               vehicles={vehicles}
+              selectedCityConfig={CITIES[city]}
             />
           </div>
         )}

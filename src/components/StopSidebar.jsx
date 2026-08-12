@@ -9,7 +9,7 @@ const UPDATE_INTERVAL = 10000;
 const TRAM_COLOR = '#da2128de';
 const BUS_COLOR = '#3f6fe8de';
 
-function StopSidebar({ stopCode, stopName, onClose, onSelectVehicle, selectedStop, setActiveStopLines, setColoredVehicles, vehicles }) {
+function StopSidebar({ stopCode, stopName, onClose, onSelectVehicle, selectedStop, setActiveStopLines, setColoredVehicles, vehicles, selectedCityConfig }) {
   const [schedule, setSchedule] = useState(null);
   const [loading, setLoading] = useState(false);
 
@@ -24,7 +24,7 @@ function StopSidebar({ stopCode, stopName, onClose, onSelectVehicle, selectedSto
 
     const loadData = async () => {
       setLoading(true);
-      const data = await fetchStopSchedule(stopCode);
+      const data = await fetchStopSchedule(stopCode, selectedCityConfig);
       setSchedule(data);
       setLoading(false);
 

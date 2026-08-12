@@ -17,7 +17,7 @@ if (!apiKey) {
 }
 
 // 1. Kovakoodattu lista kaupungeista (Digitransitin Waltti-rajapinnan mukaiset nimet)
-const cities = ['tampere', 'OULU', 'FOLI', 'Lahti', 'LINKKI'];
+const cities = ['FOLI', 'Hameenlinna', 'Lahti', 'LINKKI', 'Pori', 'tampere', 'OULU'];
 
 // 2. Lista tiedostoista, jotka halutaan poimia kunkin kaupungin zipistä
 const filesToExtract = ['stops.txt', 'trips.txt', 'transfers.txt', 'routes.txt'];

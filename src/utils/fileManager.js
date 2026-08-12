@@ -97,11 +97,11 @@ const splitCsvLine = (line) => {
 };
 
 export const getRouteShortName = (tripId) => {
-  if (!tripId) return null;
+  if (!tripId || !dataCache.has(tripId)) return null;
   return dataCache.get(tripId)['routeName'] || null;
 };
 
 export const getRouteColor = (tripId) => {
-  if (!tripId) return null;
+  if (!tripId || !dataCache.has(tripId)) return null;
   return dataCache.get(tripId)['color'] || '#1a4b8fe5';
 };

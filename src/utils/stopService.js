@@ -1,11 +1,11 @@
 const DIGITRANSIT_API_KEY = "cda4855c4e444f38804af3c43e8f3c66";
 const API_URL = "https://api.digitransit.fi/routing/v2/waltti/gtfs/v1/";
 
-export const fetchStopSchedule = async (stopCode) => {
+export const fetchStopSchedule = async (stopCode, cityConfig) => {
   // Digitransit käyttää Waltti-alueella pysäkkikoodeissa etuliitettä, esim. "Tampere:3022"
   // Jos stopCode on pelkkä numero, lisätään etuliite automaattisesti
   const cleanCode = String(stopCode).trim();
-  const fullStopId = stopCode.includes(':') ? cleanCode : `tampere:${cleanCode}`;
+  const fullStopId = stopCode.includes(':') ? cleanCode : `${cityConfig.gtfsFolder}:${cleanCode}`;
 
   const query = `
     query GetStopSchedule($id: String!) {
