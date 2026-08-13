@@ -16,6 +16,7 @@ export const fetchStopSchedule = async (stopCode, cityConfig) => {
         routes {
           shortName
           mode
+          gtfsId
         }
         stoptimesWithoutPatterns(numberOfDepartures: 35) {
           scheduledDeparture
@@ -55,7 +56,8 @@ export const fetchStopSchedule = async (stopCode, cityConfig) => {
       name: stop.name,
       routes: (stop.routes || []).map(r => ({
         shortName: r.shortName,
-        mode: r.mode
+        mode: r.mode,
+        gtfsId: r.gtfsId
       })),
       stoptimesWithoutPatterns: stop.stoptimesWithoutPatterns.map(s => ({
         scheduledDeparture: s.scheduledDeparture,

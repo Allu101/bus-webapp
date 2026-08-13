@@ -151,7 +151,7 @@ function StopSidebar({ stopCode, stopName, onClose, onSelectVehicle, selectedSto
 
           return (
             <div
-              key={line.shortName}
+              key={line.gtfsId}
               onClick={() => toggleLineFilter(line.shortName)}
               style={{
                 background: badgeColor,
