@@ -1,13 +1,11 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { CircleMarker, MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
-import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import './styles/App.css';
 import mqtt from 'mqtt';
 import GtfsRealtimeBindings from 'gtfs-realtime-bindings';
 import Map from './components/Map';
 import LineFilterBar from './components/LineFilterBar';
-import VehicleMarker from './components/VehicleMarker';
 import VehicleSidebar from './components/VehicleSidebar';
 import StopSidebar from './components/StopSidebar';
 import StopLayer from './components/StopLayer';
@@ -18,6 +16,8 @@ import { CITIES } from './config/cityConfig';
 function App() {
   const [city, setCity] = useState('tampere');
   const [apiStreamStatus, setApiSteramStatus] = useState(false);
+  const bufferRef = useRef({});
+
   const [vehicles, setVehicles] = useState({});
   const [stops, setStops] = useState([]);
   const [lines, setLines] = useState([]);
@@ -48,6 +48,25 @@ function App() {
     };
 
     loadCityData();
+
+    // Luodaan ajastin, joka tyhjentää puskurin Reactin tilaan (state) esim. x ms välein
+    const flushInterval = setInterval(() => {
+      // Tarkistetaan, onko puskuriin kertynyt uusia bussipäivityksiä
+      if (Object.keys(bufferRef.current).length > 0) {
+        
+        // Otetaan kertyneet bussit talteen ja tyhjennetään puskuri heti
+        const kertyneetBussit = bufferRef.current;
+        bufferRef.current = {};
+
+        // Päivitetään Reactin state YHDELLÄ renderöinnillä
+        setVehicles((prevBussit) => {
+          return {
+            ...prevBussit,
+            ...kertyneetBussit
+          };
+        });
+      }
+    }, 350);
 
     // Digitransitin WSS-osoite toimii suoraan selaimessa viteseillä
     //const MQTT_URL = 'wss://mqtt.hsl.fi:443/';
@@ -86,41 +105,22 @@ function App() {
             const label = v.vehicle?.label;
             
             const edellinenAika = viimeisimmätPaivitykset[bussiId] || 0;
+
             if (bussiId && tripID) {
-          
-              // Bussikohtainen kuristus: päästetään tämän yksittäisen auton data läpi vain 3s välein
-              /*const edellinenAika = viimeisimmätPaivitykset[bussiId] || 0;
-              
-              if (nyt - edellinenAika >= 2500) {
-                viimeisimmätPaivitykset[bussiId] = nyt;*/ // Lukitaan tämän bussin kello
-                
-                paivitettavatBussit[bussiId] = {
-                  id: bussiId,
-                  tripID: tripID,
-                  lineNumber: getRouteShortName(tripID),
-                  lat: v.position.latitude,
-                  lng: v.position.longitude,
-                  speed: v.position.speed ? (v.position.speed * 3.6).toFixed(0) : 0,
-                  bearing: v.position.bearing,
-                  paivitetty: new Date().toLocaleTimeString(),
-                  label: v.vehicle?.label || tripID
-                };
-              //}
+              bufferRef.current[bussiId] = {
+                id: bussiId,
+                tripID: tripID,
+                lineNumber: getRouteShortName(tripID),
+                lat: v.position.latitude,
+                lng: v.position.longitude,
+                speed: v.position.speed ? (v.position.speed * 3.6).toFixed(0) : 0,
+                bearing: v.position.bearing,
+                paivitetty: new Date().toLocaleTimeString(),
+                label: v.vehicle?.label || tripID
+              };
             }
           }
         });
-
-        // Jos tästä viestiryöpystä löytyi busseja, joiden päivitysaika koitti,
-        // sulautetaan ne Reactin stateen muiden joukkoon.
-        if (Object.keys(paivitettavatBussit).length > 0) {
-          setVehicles((prevBussit) => {
-            return {
-              ...prevBussit,
-              ...paivitettavatBussit // Korvaa vain muuttuneet, pitää vanhat tallessa
-            }
-          });
-        }
-
       } catch (error) {
         console.error("Virhe Protobuf-purussa: ", error);
       }
@@ -129,8 +129,10 @@ function App() {
     return () => {
       console.log('Suljetaan MQTT-yhteys...');
       if (client) {
-        client.end();
+        client.removeAllListeners();
+        client.end(true);
       }
+      clearInterval(flushInterval);
     };
   }, [city]);
 
