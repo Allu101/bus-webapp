@@ -1,5 +1,5 @@
 import React, { memo, useMemo, useState, useEffect, useRef } from 'react';
-import { Marker } from 'react-leaflet';
+import { Marker, useMap } from 'react-leaflet';
 import { createVehicleIcon, formatDelay, parseDelaySeconds, getHeadingDegrees } from '../utils/vehicleHelpers';
 import { getRouteShortName } from '../utils/fileManager';
 
@@ -11,48 +11,74 @@ const VehicleMarker = memo(function VehicleMarker({ vehicle, onSelect, compactIc
     return null;
   }
 
-  const [displayPos, setDisplayPos] = useState([lat, lng]);
+  const map = useMap();
+
+  const initialPosRef = useRef([lat, lng]);
   const markerRef = useRef(null);
   
-  // Refit pitävät kirjaa reaaliaikaisista koordinaateista animaatiota varten
-  const currentPosRef = useRef([lat, lng]);
+  // Pidetään kirjaa animaation alusta, lopusta ja nykyhetkestä
+  const startPosRef = useRef([lat, lng]);
   const targetPosRef = useRef([lat, lng]);
+  const currentPosRef = useRef([lat, lng]);
+  
+  const animStartTimeRef = useRef(null);
   const animationRef = useRef(null);
-  const ANIM_KESTO = 2600;
 
+  const ANIM_KESTO = 850; // ms
+
+  // 1. Kun uudet koordinaatit saapuvat (lat/lng muuttuu):
   useEffect(() => {
+    startPosRef.current = currentPosRef.current;
     targetPosRef.current = [lat, lng];
+    // Nollataan aloitusaika (saadaan animaatiosilmukasta)
+    animStartTimeRef.current = performance.now();
   }, [lat, lng]);
 
-  // 2. Tämä useEffect käynnistyy VAIN KERRAN ja pyörittää jatkuvaa pehmeää liikettä
+  // 2. Animaatiosilmukka (pyörii taustalla)
   useEffect(() => {
-    let viimeisinAika = new Date();// performance.now();
-
     const animoi = (nyt) => {
-      const kulunutAika = nyt - viimeisinAika;
-      
-      // Lasketaan kuinka suuren osan matkasta bussi liikkuu tällä ruudulla (frame)
-      // perustuen sinun määrittämääsi KESTOON.
-      const step = kulunutAika / ANIM_KESTO;
-      viimeisinAika = nyt;
+      if (animStartTimeRef.current !== null) {
+        const kulunutAika = nyt - animStartTimeRef.current;
+        // Progress on välillä 0.0 (alussa) ja 1.0 (valmis)
+        const progress = Math.max(0, Math.min(kulunutAika / ANIM_KESTO, 1));
 
-      const [currentLat, currentLng] = currentPosRef.current;
-      const [targetLat, targetLng] = targetPosRef.current;
+        const [startLat, startLng] = startPosRef.current;
+        const [targetLat, targetLng] = targetPosRef.current;
 
-      // Lasketaan uusi sijainti "liukumalla" kohti maalia
-      // Mitä pienempi KESTO, sitä suurempi step, sitä nopeammin bussi saavuttaa maalin.
-      const uusiLat = currentLat + (targetLat - currentLat) * Math.min(step, 1);
-      const uusiLng = currentLng + (targetLng - currentLng) * Math.min(step, 1);
+        // Puhdas matemaattinen LERP (Täysin suora koordinaattilinja)
+        const currentLat = startLat + (targetLat - startLat) * progress;
+        const currentLng = startLng + (targetLng - startLng) * progress;
+        currentPosRef.current = [currentLat, currentLng];
 
-      // Päivitetään muisti ja näkymä
-      currentPosRef.current = [uusiLat, uusiLng];
-      const marker = markerRef.current;
-
-      if (marker) {
-          marker.setLatLng([uusiLat, uusiLng]);
+        if (markerRef.current) {
+          const marker = markerRef.current;
+          const icon = marker._icon;
+          
+          if (icon) {
+            // Ohitetaan Leafletin Math.round()
+            // 1. Haetaan absoluuttinen projektio desimaaleina (ei pyöristystä)
+            const projected = map.project([currentLat, currentLng]);
+            // 2. Haetaan nykyisen karttanäkymän nollapiste
+            const origin = map.getPixelOrigin();
+            
+            // 3. Lasketaan täsmällinen paikka näytöllä alipikseleinä
+            const subpixelX = projected.x - origin.x;
+            const subpixelY = projected.y - origin.y;
+            
+            // 4. Siirretään ikonia suoraan DOM-tasolla (GPU-kiihdytetty subpixel-renderöinti)
+            icon.style.transform = `translate3d(${subpixelX}px, ${subpixelY}px, 0px)`;
+            
+            // 5. Jos käytät Leafletin varjoja, siirretään myös se
+            if (marker._shadow) {
+              marker._shadow.style.transform = `translate3d(${subpixelX}px, ${subpixelY}px, 0px)`;
+            }
+            
+            // 6. Pidetään Leaflet taustalla tietoisena bussin sijainnista (ilman renderöintiä)
+            marker._latlng = L.latLng(currentLat, currentLng);
+          }
+        }
       }
 
-      // Pyydetään seuraava ruutu
       animationRef.current = requestAnimationFrame(animoi);
     };
 
@@ -61,7 +87,7 @@ const VehicleMarker = memo(function VehicleMarker({ vehicle, onSelect, compactIc
     return () => {
       if (animationRef.current) cancelAnimationFrame(animationRef.current);
     };
-  }, []);
+  }, [map]);
 
   const tripId = vehicle.tripID;
   const lineId = vehicle.lineRef || '-';
@@ -97,7 +123,7 @@ const VehicleMarker = memo(function VehicleMarker({ vehicle, onSelect, compactIc
     <Marker
       ref={markerRef}
       key={vehicle.id}
-      position={{lat, lng}} 
+      position={initialPosRef.current} 
       icon={icon} 
       zIndexOffset={1000} 
       eventHandlers={{ 
@@ -109,7 +135,7 @@ const VehicleMarker = memo(function VehicleMarker({ vehicle, onSelect, compactIc
   // 3. Vertaillaan, onko ajoneuvon sijainti, tila tai asetus muuttunut.
   // Jos tämä palauttaa true, React EI renderöi tätä bussia uudelleen (säästää prosessoria).
   const shouldNotUpdate = prevProps.vehicle.lat === nextProps.vehicle.lat &&
-      prevProps.vehicle.lng === nextProps.vehicle.lng && prevProps.vehicle.speed && nextProps.vehicle.speed &&
+      prevProps.vehicle.lng === nextProps.vehicle.lng && prevProps.vehicle.speed === nextProps.vehicle.speed &&
       prevProps.compactIcons === nextProps.compactIcons && prevProps.colorOverride === nextProps.colorOverride;
 
   return (

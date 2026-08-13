@@ -9,8 +9,8 @@ function BusMap({ stops, onStopSelect, selectedStop, vehiclesToDisplay, coloredV
       <MapContainer
         center={cityConfig.center} 
         zoom={13}
-        zoomSnap={0.75}
-        zoomDelta={0.75}
+        zoomSnap={0.5}
+        zoomDelta={0.5}
         wheelPxPerZoomLevel={150}
         zoomControl={false}
         style={{ height: '100%', width: '100%', background: '#111' }}
@@ -28,7 +28,7 @@ function BusMap({ stops, onStopSelect, selectedStop, vehiclesToDisplay, coloredV
           const assignedColor = coloredVehicles && coloredVehicles[vRef];
           return (
             <VehicleMarker
-              key={`vehicle-${v.id}-${index}`}
+              key={`vehicle-${v.id}`}
               vehicle={v}
               compactIcons={compactIcons}
               onSelect={onVehicleSelect}

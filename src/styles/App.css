@@ -112,6 +112,19 @@ body {
   box-shadow: 0 0 0 2px rgba(63, 111, 232, 0.3);
 }
 
+.moving-vehicle,
+.moving-vehicle *,
+.leaflet-marker-icon {
+  transition: none !important;
+  animation: none !important;
+  will-change: transform;
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  /* Estää tekstiä muuttamasta asettelua alipikseliliikkeessä */
+  -webkit-font-smoothing: subpixel-antialiased;
+}
+
 /* Mobiili: Sivupalkki muuttuu Bottom Sheetiksi */
 @media (max-width: 768px) {
   .sidebar-container { 

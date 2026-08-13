@@ -51,7 +51,7 @@ export const createVehicleIcon = ({ line, lineNumber, tripId, vehicleId, speed, 
   //const isSmallIcon = window.innerWidth < 500;
 
   // Jos asetus on päällä, tehdään ikonista huomattavasti pienempi
-  const size = compactIcons ? 30 : 45;
+  const size = compactIcons ? 30 : 46;
   const iconWidth = size;
   const iconHeight = size;
   const anchor = size / 2;
