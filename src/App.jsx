@@ -12,11 +12,13 @@ import StopLayer from './components/StopLayer';
 import { fetchStops, fetchLines } from './utils/httpRequests';
 import { initStaticData, getRouteShortName } from './utils/fileManager';
 import { CITIES } from './config/cityConfig';
+import { calculateBearing, getApproxDistanceMeters } from './utils/geoUtils';
 
 function App() {
   const [city, setCity] = useState('tampere');
   const [apiStreamStatus, setApiSteramStatus] = useState(false);
   const bufferRef = useRef({});
+  const vehicleHistoryRef = useRef({});
 
   const [vehicles, setVehicles] = useState({});
   const [stops, setStops] = useState([]);
@@ -45,6 +47,8 @@ function App() {
       
       setSelectedStop(null);
       setVehicles({});
+      bufferRef.current = {};
+      vehicleHistoryRef.current = {};
     };
 
     loadCityData();
@@ -66,7 +70,7 @@ function App() {
           };
         });
       }
-    }, 350);
+    }, 400);
 
     // Digitransitin WSS-osoite toimii suoraan selaimessa viteseillä
     //const MQTT_URL = 'wss://mqtt.hsl.fi:443/';
@@ -86,15 +90,10 @@ function App() {
       });
     });
 
-    const viimeisimmätPaivitykset = {};
-
     client.on('message', (topic, message) => {
       try {
         // TÄRKEÄÄ: Pura viesti Protobuf-formaatista tekstin sijaan!
         const feed = GtfsRealtimeBindings.transit_realtime.FeedMessage.decode(new Uint8Array(message));
-        
-        const nyt = Date.now();
-        const paivitettavatBussit = {};
         
         // Digitransit lähettää jokaisen päivityksen "entity"-listana
         feed.entity.forEach((entity) => {
@@ -103,19 +102,50 @@ function App() {
             const tripID = v.trip?.tripId;
             const bussiId = v.vehicle?.id;  // Bussin oma ID
             const label = v.vehicle?.label;
+            const newLat = v.position.latitude;
+            const newLng = v.position.longitude;
             
-            const edellinenAika = viimeisimmätPaivitykset[bussiId] || 0;
+            if (bussiId && tripID && newLat && newLng) {
+              const prevVeh = vehicleHistoryRef.current[bussiId];
+              let bearing = v.position.bearing;
 
-            if (bussiId && tripID) {
+              if (prevVeh) {
+                // 1. Lasketaan liikkunut matka metreinä
+                const distMeters = getApproxDistanceMeters(
+                  prevVeh.lat,
+                  prevVeh.lng,
+                  newLat,
+                  newLng
+                );
+
+                if (distMeters >= 2) {
+                  if (!bearing || bearing === 0) {
+                    bearing = calculateBearing(prevVeh.lat, prevVeh.lng, newLat, newLng);
+                  }
+                } 
+                // 2. Jos bussi EI ole liikkunut -> Pidetään edellinen laskettu suunta!
+                else {
+                  bearing = bearing || prevVeh.bearing || 0;
+                }
+              } else {
+                bearing = bearing || 0;
+              }
+
+              vehicleHistoryRef.current[bussiId] = {
+                lat: newLat,
+                lng: newLng,
+                bearing: bearing,
+                timestampMs: Date.now()
+              };
+
               bufferRef.current[bussiId] = {
                 id: bussiId,
                 tripID: tripID,
                 lineNumber: getRouteShortName(tripID),
-                lat: v.position.latitude,
-                lng: v.position.longitude,
+                lat: newLat,
+                lng: newLng,
                 speed: v.position.speed ? (v.position.speed * 3.6).toFixed(0) : 0,
-                bearing: v.position.bearing,
-                paivitetty: new Date().toLocaleTimeString(),
+                bearing: bearing,
                 label: v.vehicle?.label || tripID
               };
             }
