@@ -20,8 +20,8 @@ export const initStaticData = async (cityConfig) => {
   try {
     // Ladataan molemmat tiedostot rinnakkain suorituskyvyn parantamiseksi
     const [tripsResponse, routesResponse] = await Promise.all([
-      fetch(`/data/${cityFolderName}/trips.txt`),
-      fetch(`/data/${cityFolderName}/routes.txt`)
+      fetch(`${import.meta.env.BASE_URL}data/${cityFolderName}/trips.txt`),
+      fetch(`${import.meta.env.BASE_URL}data/${cityFolderName}/routes.txt`)
     ]);
 
     if (!tripsResponse.ok) throw new Error(`Trip-datan haku epäonnistui kaupungille: ${cityConfig.id}`);
