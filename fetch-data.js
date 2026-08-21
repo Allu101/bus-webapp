@@ -4,6 +4,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { CITIES } from './src/config/cityConfig.js';
+import 'dotenv/config';
 
 // ES-moduulien __dirname-ratkaisu
 const __filename = fileURLToPath(import.meta.url);
@@ -16,23 +17,19 @@ if (!apiKey) {
   process.exit(1);
 }
 
-// 1. Kovakoodattu lista kaupungeista (Digitransitin Waltti-rajapinnan mukaiset nimet)
-const cities = ['FOLI', 'Hameenlinna', 'Lahti', 'LINKKI', 'Pori', 'tampere', 'OULU'];
-
 // 2. Lista tiedostoista, jotka halutaan poimia kunkin kaupungin zipistä
 const filesToExtract = ['stops.txt', 'trips.txt', 'transfers.txt', 'routes.txt'];
 
 async function downloadAndExtractAll() {
   // Käydään kaupungit läpi yksi kerrallaan
   Object.values(CITIES).forEach(async (cityConfig) => {
-  //for (const city of cities) {
     console.log(`\n--- Aloitetaan kaupunki: ${cityConfig.id.toUpperCase()} ---`);
     
     // Rakennetaan URL dynaamisesti kaupungin nimen mukaan
     const url = `https://api.digitransit.fi/routing-data/v3/waltti/${cityConfig.gtfsFolder}-gtfs.zip`;
     
     // Määritetään oma alikansio tälle kaupungille (esim. public/data/tampere)
-    const cityDir = path.join(__dirname, 'public', 'data', cityConfig.gtfsFolder);
+    const cityDir = path.join(__dirname, 'dist', 'data', cityConfig.gtfsFolder);
 
     try {
       console.log(`Ladataan pakettia osoitteesta: ${url}`);
@@ -57,7 +54,7 @@ async function downloadAndExtractAll() {
         if (entry) {
           const outputFile = path.join(cityDir, fileName);
           fs.writeFileSync(outputFile, entry.getData());
-          console.log(` Tallennettu: public/data/${cityConfig.gtfsFolder}/${fileName}`);
+          console.log(` Tallennettu: dist/data/${cityConfig.gtfsFolder}/${fileName}`);
         } else {
           console.warn(`⚠️ Varoitus: Tiedostoa ${fileName} ei löytynyt ${cityConfig.gtfsFolder}-paketista.`);
         }

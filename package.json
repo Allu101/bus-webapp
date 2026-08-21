@@ -7,11 +7,13 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "start": "vite build && vite preview"
   },
   "dependencies": {
     "adm-zip": "^0.6.0",
     "axios": "^1.18.1",
+    "dotenv": "^17.4.2",
     "gtfs-realtime-bindings": "^1.1.1",
     "leaflet": "^1.9.4",
     "mqtt": "^5.15.2",
