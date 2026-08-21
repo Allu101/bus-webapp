@@ -1,5 +1,4 @@
-const DIGITRANSIT_API_KEY = "cda4855c4e444f38804af3c43e8f3c66";
-const API_URL = "https://api.digitransit.fi/routing/v2/waltti/gtfs/v1/";
+const API_URL = "/digitransit/routing/v2/waltti/gtfs/v1/";
 
 export const fetchStopSchedule = async (stopCode, cityConfig) => {
   // Digitransit käyttää Waltti-alueella pysäkkikoodeissa etuliitettä, esim. "Tampere:3022"
@@ -41,7 +40,6 @@ export const fetchStopSchedule = async (stopCode, cityConfig) => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'digitransit-subscription-key': DIGITRANSIT_API_KEY
       },
       body: JSON.stringify({
         query,
