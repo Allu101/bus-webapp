@@ -10,7 +10,7 @@ const COLORS = {
 };
 
 const DELAY_BUFFER_SECONDS = 20; 
-const TRAM_LINES = ['1', '3'];
+//const TRAM_LINES = ['1', '3'];
 
 export const parseDelaySeconds = (delay) => {
   if (!delay) return null;
@@ -45,15 +45,10 @@ export const getHeadingDegrees = (vehicle) => {
 
 export const createVehicleIcon = ({ line, lineNumber, tripId, vehicleId, speed, delayText, delaySeconds, heading, compactIcons, colorOverride }) => {
   const rotation = heading || 0;
-  const isTram = TRAM_LINES.includes(String(lineNumber));
   const backgroundColor = getRouteColor(tripId);
-
   //const isSmallIcon = window.innerWidth < 500;
 
-  // Jos asetus on päällä, tehdään ikonista huomattavasti pienempi
   const size = compactIcons ? 30 : 46;
-  const iconWidth = size;
-  const iconHeight = size;
   const anchor = size / 2;
 
   const lineText = String(lineNumber || '');
@@ -102,7 +97,7 @@ export const createVehicleIcon = ({ line, lineNumber, tripId, vehicleId, speed, 
           <div style="
             width: 100%; height: 100%;
             background-color: ${backgroundColor};
-            border-radius: 50% 50% 50% ${speed > 0.5 ? '18%' : '40%'}; /* Tekee pisaran muodon */
+            border-radius: 50% 50% 50% ${speed > 0.5 ? '15%' : '35%'}; /* Tekee pisaran muodon */
             transform: rotate(+135deg); /* Oletuksena kärki osoittaa ylös (pohjoiseen) */
             border: ${colorOverride ? '3px solid ' + colorOverride || '#ada8a8c2' : '2px solid ' + '#ada8a8c2'};
             box-shadow: 0 3px 6px rgba(0,0,0,0.4);
@@ -132,6 +127,6 @@ export const createVehicleIcon = ({ line, lineNumber, tripId, vehicleId, speed, 
       </div>
     `,
     iconSize: [size, size],
-    iconAnchor: [size / 2, size / 2] 
+    iconAnchor: [anchor, anchor] 
   });
 };
