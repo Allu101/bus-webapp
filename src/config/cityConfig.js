@@ -25,6 +25,24 @@ export const CITIES = {
     mqtt_url: 'wss://mqtt.digitransit.fi:443/',
     mqtt_topic: '/gtfsrt/vp/LINKKI/#'
   },
+  kotka: {
+    id: 'kotka',
+    displayName: 'Kotka',
+    center: [60.4664, 26.9458],
+    zoom: 13,
+    gtfsFolder: 'Kotka',
+    mqtt_url: 'wss://mqtt.digitransit.fi:443/',
+    mqtt_topic: '/gtfsrt/vp/Kotka/#'
+  },
+  kuopio: {
+    id: 'kuopio',
+    displayName: 'Kuopio',
+    center: [62.8924, 27.6782],
+    zoom: 13,
+    gtfsFolder: 'Kuopio',
+    mqtt_url: 'wss://mqtt.digitransit.fi:443/',
+    mqtt_topic: '/gtfsrt/vp/Kuopio/#'
+  },
   lahti: {
     id: 'lahti',
     displayName: 'Lahti',
@@ -33,6 +51,15 @@ export const CITIES = {
     gtfsFolder: 'Lahti',
     mqtt_url: 'wss://mqtt.digitransit.fi:443/',
     mqtt_topic: '/gtfsrt/vp/Lahti/#'
+  },
+  lappeenranta: {
+    id: 'lappeenranta',
+    displayName: 'Lappeenranta/Imatra',
+    center: [61.0587, 28.1887],
+    zoom: 13,
+    gtfsFolder: 'Lappeenranta',
+    mqtt_url: 'wss://mqtt.digitransit.fi:443/',
+    mqtt_topic: '/gtfsrt/vp/Lappeenranta/#'
   },
   oulu: {
     id: 'oulu',
@@ -52,6 +79,15 @@ export const CITIES = {
     mqtt_url: 'wss://mqtt.digitransit.fi:443/',
     mqtt_topic: '/gtfsrt/vp/Pori/#'
   },
+  rovaniemi: {
+    id: 'rovaniemi',
+    displayName: 'Rovaniemi',
+    center: [66.5039, 25.7294],
+    zoom: 13,
+    gtfsFolder: 'Rovaniemi',
+    mqtt_url: 'wss://mqtt.digitransit.fi:443/',
+    mqtt_topic: '/gtfsrt/vp/Rovaniemi/#'
+  },
   tampere: {
     id: 'tampere',
     displayName: 'Tampere (Nysse)',
@@ -69,5 +105,14 @@ export const CITIES = {
     gtfsFolder: 'FOLI',
     mqtt_url: 'wss://mqtt.digitransit.fi:443/',
     mqtt_topic: '/gtfsrt/vp/FOLI/#'
-  }
+  },
+  vaasa: {
+    id: 'vaasa',
+    displayName: 'Vaasa',
+    center: [63.0951, 21.6165],
+    zoom: 13,
+    gtfsFolder: 'Vaasa',
+    mqtt_url: 'wss://mqtt.digitransit.fi:443/',
+    mqtt_topic: '/gtfsrt/vp/Vaasa/#'
+  },
 };
