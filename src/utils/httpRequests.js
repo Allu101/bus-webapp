@@ -4,7 +4,7 @@ import axios from 'axios';
 export const fetchStops = async (cityConfig) => {
   try {
     // Haetaan paikallinen stops.txt valitun kaupungin kansiosta
-    const response = await fetch(`${import.meta.env.BASE_URL}data/${cityConfig.gtfsFolder}/stops.txt`);
+    const response = await fetch(`/data/${cityConfig.gtfsFolder}/stops.txt`);
     if (!response.ok) throw new Error(`Pysäkkidatan haku epäonnistui kaupungille: ${cityConfig.id}`);
     
     const text = await response.text();
@@ -77,7 +77,7 @@ const parseCSVLine = (line) => {
 
 export const fetchLines = async (cityConfig) => {
   try {
-    const response = await fetch(`${import.meta.env.BASE_URL}data/${cityConfig.gtfsFolder}/routes.txt`);
+    const response = await fetch(`/data/${cityConfig.gtfsFolder}/routes.txt`);
     if (!response.ok) return [];
 
     const text = await response.text();
