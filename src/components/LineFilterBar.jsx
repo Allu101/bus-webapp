@@ -4,7 +4,9 @@ const COLORS = {
   bgHidden: '#101f33', // Piilotetun napin tausta
 };
 
-function LineFilterBar({ activeLines, hiddenLines, toggleLineVisibility, toggleAllLines, allLinesHidden }) {
+function LineFilterBar({ activeLines, selectedLines, toggleLineVisibility, toggleAllLines }) {
+  const someSelected = selectedLines.size > 0;
+
   return (
     <div style={{
       padding: '14px',
@@ -27,8 +29,8 @@ function LineFilterBar({ activeLines, hiddenLines, toggleLineVisibility, toggleA
             padding: '6px 14px',
             borderRadius: '20px',
             border: '1px solid #4f7dea',
-            backgroundColor: allLinesHidden ? COLORS.bgHidden : '#3f6fe8',
-            color: allLinesHidden ? '#8eb3ff' : '#ffffff',
+            backgroundColor: someSelected ? '#3f6fe8' : COLORS.bgHidden,
+            color: someSelected ? '#ffffff' : '#8eb3ff',
             cursor: 'pointer',
             fontSize: '13px',
             fontWeight: 'bold',
@@ -36,13 +38,15 @@ function LineFilterBar({ activeLines, hiddenLines, toggleLineVisibility, toggleA
             minWidth: '120px'
           }}
         >
-          {allLinesHidden ? '👁️ Näytä kaikki' : '❌ Piilota kaikki'}
+          {/*allLinesHidden ? '👁️ Näytä kaikki' : '❌ Piilota kaikki'*/}
+          {someSelected ? '👁️ Näytä kaikki' : '✅ Kaikki näkyvissä'}
         </button>
 
         {/* Linjapainikkeet */}
         {activeLines.map((lineObj) => {
           const line = lineObj.name; 
-          const isHidden = hiddenLines.has(line);
+          const isSelected = selectedLines.has(line);
+          const isActive = !someSelected || isSelected;
 
           const customColor = lineObj.route_color ? `#${lineObj.route_color.replace('#', '')}af` : '#0f4db5';
           const customBorderColor = lineObj.route_color ? `#${lineObj.route_color.replace('#', '')}` : '#0f4db5';
@@ -58,12 +62,12 @@ function LineFilterBar({ activeLines, hiddenLines, toggleLineVisibility, toggleA
                 padding: '6px 12px',
                 borderRadius: '15px',
                 border: `2px solid ${borderColor}`,
-                backgroundColor: isHidden ? COLORS.bgHidden : mainColor,
-                color: isHidden ? '#5f7b9f' : '#f8fbff', // Himmennetään teksti jos piilotettu
+                backgroundColor: isSelected ? mainColor : COLORS.bgHidden,
+                color: isActive ? '#f8fbff' : '#5f7b9f', // Himmennetään teksti jos piilotettu
                 cursor: 'pointer',
                 fontSize: '14px',
                 fontWeight: 'bold',
-                opacity: isHidden ? 0.4 : 1,
+                opacity: isActive ? 1 : 0.4,
                 transition: 'all 0.15s ease',
                 display: 'inline-flex',
                 alignItems: 'center',

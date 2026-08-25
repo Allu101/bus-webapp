@@ -23,7 +23,7 @@ function App() {
   const [vehicles, setVehicles] = useState({});
   const [stops, setStops] = useState([]);
   const [lines, setLines] = useState([]);
-  const [hiddenLines, setHiddenLines] = useState(new Set()); // Pidetään kirjaa piilotetuista linjoista
+  const [selectedLines, setSelectedLines] = useState(new Set());
 
   const [showFilters, setShowFilters] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
@@ -47,6 +47,7 @@ function App() {
       
       setSelectedStop(null);
       setVehicles({});
+      setSelectedLines(new Set())
       bufferRef.current = {};
       vehicleHistoryRef.current = {};
     };
@@ -187,26 +188,19 @@ function App() {
   };
 
   const toggleLineVisibility = (lineRef) => {
-    setHiddenLines(prev => {
-      const newHidden = new Set(prev);
-      if (newHidden.has(lineRef)) {
-        newHidden.delete(lineRef);
+    setSelectedLines(prev => {
+      const next = new Set(prev);
+      if (next.has(lineRef)) {
+        next.delete(lineRef);
       } else {
-        newHidden.add(lineRef);
+        next.add(lineRef);
       }
-      return newHidden;
+      return next;
     });
   };
 
-  const allLinesHidden = lines.length > 0 && lines.every(lineObj => hiddenLines.has(lineObj.name));
-
   const toggleAllLines = () => {
-    if (!lines.length) return;
-    if (allLinesHidden) {
-      setHiddenLines(new Set());
-    } else {
-      setHiddenLines(new Set(lines.map(l => l.name).filter(Boolean)));
-    }
+    setSelectedLines(new Set());
   };
 
   const getFilteredVehicles = () => {
@@ -288,10 +282,9 @@ function App() {
       {showFilters && (
         <LineFilterBar
           activeLines={lines}
-          hiddenLines={hiddenLines}
+          selectedLines={selectedLines}
           toggleLineVisibility={toggleLineVisibility}
           toggleAllLines={toggleAllLines}
-          allLinesHidden={allLinesHidden}
         />
       )}
 
