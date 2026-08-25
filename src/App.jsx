@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { CircleMarker, MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import './styles/App.css';
 import mqtt from 'mqtt';
@@ -32,6 +31,7 @@ function App() {
 
   const [activeStopLines, setActiveStopLines] = useState([]);
   const [coloredVehicles, setColoredVehicles] = useState({});
+  const [mapBounds, setMapBounds] = useState(null);
 
   useEffect(() => {
     const loadCityData = async () => {
@@ -255,7 +255,14 @@ function App() {
   };
 
   const getFilteredVehicles = () => {
-    const list = Object.values(vehicles);
+    let list = Object.values(vehicles);
+
+    if (mapBounds) {
+      list = list.filter(
+        v => v.lat != null && v.lng != null && mapBounds.contains([v.lat, v.lng])
+      );
+    }
+
     // 1. Jos pysäkki on valittu, sivuutetaan globaali filtteri ja näytetään vain pysäkin omat autot
     if (selectedStop) {
       if (activeStopLines?.length > 0) {
@@ -269,15 +276,13 @@ function App() {
     }
 
     // 2. Jos pysäkkiä EI ole valittu, sovelletaan yläpalkin linjasuodatusta
-    if (hiddenLines.size > 0) {
-      return list.filter(v => !hiddenLines.has(v.lineNumber));
+    if (selectedLines.size > 0) {
+      return list.filter(v => selectedLines.has(v.lineNumber));
     }
 
     // 3. Oletuksena näytetään kaikki
-    return vehicles;
+    return list;
   };
-
-  const vehiclesToDisplay = getFilteredVehicles();
 
   return (
     <div className="app-layout">
@@ -350,6 +355,7 @@ function App() {
           compactIcons={compactIcons}
           onVehicleSelect={handleLinkToVehicle}
           city={CITIES[city]}
+          setMapBounds={setMapBounds}
         />
 
         {/* Bussi Sivupalkki */}

@@ -1,9 +1,9 @@
 import React, { useEffect } from 'react';
-import { MapContainer, TileLayer, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, useMap, useMapEvents } from 'react-leaflet';
 import StopLayer from './StopLayer';
 import VehicleMarker from './VehicleMarker';
 
-function BusMap({ stops, onStopSelect, selectedStop, vehiclesToDisplay, coloredVehicles, compactIcons, onVehicleSelect, city: cityConfig }) {
+function BusMap({ stops, onStopSelect, selectedStop, vehiclesToDisplay, coloredVehicles, compactIcons, onVehicleSelect, city: cityConfig, setMapBounds }) {
   return (
     <div className="map-wrapper">
       <MapContainer
@@ -15,6 +15,7 @@ function BusMap({ stops, onStopSelect, selectedStop, vehiclesToDisplay, coloredV
         zoomControl={false}
         style={{ height: '100%', width: '100%', background: '#111' }}
       >
+        <MapBoundsTracker onBoundsChange={setMapBounds} />
         <MapController center={cityConfig.center} zoom={cityConfig.zoom} />
         <TileLayer
           url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
@@ -39,6 +40,23 @@ function BusMap({ stops, onStopSelect, selectedStop, vehiclesToDisplay, coloredV
       </MapContainer>
     </div>
   );
+}
+
+function MapBoundsTracker({ onBoundsChange }) {
+  const map = useMapEvents({
+    moveend() {
+      onBoundsChange(map.getBounds());
+    },
+    zoomend() {
+      onBoundsChange(map.getBounds());
+    },
+  });
+
+  useEffect(() => {
+    onBoundsChange(map.getBounds()); // Asetetaan alkuarvo heti
+  }, []);
+
+  return null;
 }
 
 function MapController({ center, zoom }) {
