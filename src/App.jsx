@@ -16,7 +16,6 @@ import { calculateBearing, getApproxDistanceMeters } from './utils/geoUtils';
 
 function App() {
   const [city, setCity] = useState('tampere');
-  const [apiStreamStatus, setApiSteramStatus] = useState(false);
   const bufferRef = useRef({});
   const vehicleHistoryRef = useRef({});
 
@@ -81,10 +80,7 @@ function App() {
     const client = mqtt.connect(CITIES[city].mqtt_url);
 
     client.on('connect', () => {
-      setApiSteramStatus(true);
-      // Tilataan haluttu kanava. Voit käyttää esim. /hfp/v2/journey/ongoing/vp/bus/#
-      //const topic = '/hfp/v2/journey/ongoing/vp/bus/#'; //hsl
-      const topic = CITIES[city].mqtt_topic; //`/gtfsrt/vp/${city}/#`
+      const topic = CITIES[city].mqtt_topic;
       
       client.subscribe(topic, (err) => {
         if (!err) console.log(`Tilattu kanava: ${topic}`);
@@ -93,67 +89,13 @@ function App() {
 
     client.on('message', (topic, message) => {
       try {
-        // TÄRKEÄÄ: Pura viesti Protobuf-formaatista tekstin sijaan!
-        const feed = GtfsRealtimeBindings.transit_realtime.FeedMessage.decode(new Uint8Array(message));
-        
-        // Digitransit lähettää jokaisen päivityksen "entity"-listana
-        feed.entity.forEach((entity) => {
-          if (entity.vehicle) {
-            const v = entity.vehicle;
-            const tripID = v.trip?.tripId;
-            const bussiId = v.vehicle?.id;  // Bussin oma ID
-            const label = v.vehicle?.label;
-            const newLat = v.position.latitude;
-            const newLng = v.position.longitude;
-            
-            if (bussiId && tripID && newLat && newLng) {
-              const prevVeh = vehicleHistoryRef.current[bussiId];
-              let bearing = v.position.bearing;
-
-              if (prevVeh) {
-                // 1. Lasketaan liikkunut matka metreinä
-                const distMeters = getApproxDistanceMeters(
-                  prevVeh.lat,
-                  prevVeh.lng,
-                  newLat,
-                  newLng
-                );
-
-                if (distMeters >= 2) {
-                  if (!bearing || bearing === 0) {
-                    bearing = calculateBearing(prevVeh.lat, prevVeh.lng, newLat, newLng);
-                  }
-                } 
-                // 2. Jos bussi EI ole liikkunut -> Pidetään edellinen laskettu suunta!
-                else {
-                  bearing = bearing || prevVeh.bearing || 0;
-                }
-              } else {
-                bearing = bearing || 0;
-              }
-
-              vehicleHistoryRef.current[bussiId] = {
-                lat: newLat,
-                lng: newLng,
-                bearing: bearing,
-                timestampMs: Date.now()
-              };
-
-              bufferRef.current[bussiId] = {
-                id: bussiId,
-                tripID: tripID,
-                lineNumber: getRouteShortName(tripID),
-                lat: newLat,
-                lng: newLng,
-                speed: v.position.speed ? (v.position.speed * 3.6).toFixed(0) : 0,
-                bearing: bearing,
-                label: v.vehicle?.label || tripID
-              };
-            }
-          }
-        });
+        if (CITIES[city].mqtt_format === 'hfp') {
+          parseHfpMessage(message, vehicleHistoryRef, bufferRef);
+        } else {
+          parseGtfsRtMessage(message, vehicleHistoryRef, bufferRef);
+        }
       } catch (error) {
-        console.error("Virhe Protobuf-purussa: ", error);
+        console.error('Virhe viestin purussa:', error);
       }
     });
 
@@ -166,6 +108,115 @@ function App() {
       clearInterval(flushInterval);
     };
   }, [city]);
+
+  function parseHfpMessage(message, vehicleHistoryRef, bufferRef) {
+    const payload = JSON.parse(message.toString());
+    const vp = payload.VP;
+  
+    // Hylkää viestit joissa ei ole sijaintia tai ne ovat ns. deadrun/signoff
+    if (!vp || vp.lat == null || vp.long == null) return;
+  
+    // Ajoneuvon yksilöivä ID: "0012/01306" (operator 4 dig / vehicle 5 dig)
+    const bussiId = `${String(vp.oper).padStart(4, '0')}/${String(vp.veh).padStart(5, '0')}`;
+  
+    // Synteettinen tripID koska trip_id:t eivät ole pysyviä HSL:ssä
+    const tripID = `${vp.route}_${vp.dir}_${vp.oday}_${vp.start}`;
+  
+    if (!bussiId || !tripID) return;
+  
+    const newLat = vp.lat;
+    const newLng = vp.long;   // Huom: HFP käyttää "long" eikä "lng"
+  
+    const prevVeh = vehicleHistoryRef.current[bussiId];
+    let bearing = vp.hdg || 0;
+  
+    if (prevVeh) {
+      const distMeters = getApproxDistanceMeters(prevVeh.lat, prevVeh.lng, newLat, newLng);
+      if (distMeters >= 2) {
+        // HFP:ssä hdg on yleensä luotettava, lasketaan vain jos puuttuu
+        if (!bearing) {
+          bearing = calculateBearing(prevVeh.lat, prevVeh.lng, newLat, newLng);
+        }
+      } else {
+        // Ajoneuvo ei liiku – pidetään edellinen suunta
+        bearing = bearing || prevVeh.bearing || 0;
+      }
+    }
+  
+    vehicleHistoryRef.current[bussiId] = {
+      lat: newLat,
+      lng: newLng,
+      bearing: bearing,
+      timestampMs: Date.now(),
+    };
+  
+    bufferRef.current[bussiId] = {
+      id: bussiId,
+      tripID: tripID,
+      lineNumber: vp.desi || vp.route,   // "550" tai fallback "2550"
+      lat: newLat,
+      lng: newLng,
+      speed: vp.spd != null ? (vp.spd * 3.6).toFixed(0) : 0,
+      bearing: bearing,
+      label: vp.desi || bussiId,
+      // ── HFP-lisädata tulevaa varten ──────────────────────────────────────
+      doorOpen:   vp.drst === 1,         // true = ovet auki
+      delayS:     vp.dl ?? null,         // null jos tieto puuttuu
+      occupancy:  vp.occu ?? null,       // 0–100, null jos ei saatavilla
+      routeId:    vp.route,              // GTFS route_id ("2550")
+      // ─────────────────────────────────────────────────────────────────────
+    };
+  }
+
+  function parseGtfsRtMessage(message, vehicleHistoryRef, bufferRef) {
+    const feed = GtfsRealtimeBindings.transit_realtime.FeedMessage.decode(new Uint8Array(message));
+  
+    feed.entity.forEach((entity) => {
+      if (!entity.vehicle) return;
+  
+      const v = entity.vehicle;
+      const tripID = v.trip?.tripId;
+      const bussiId = v.vehicle?.id;
+      const newLat = v.position.latitude;
+      const newLng = v.position.longitude;
+  
+      if (!bussiId || !tripID || !newLat || !newLng) return;
+  
+      const prevVeh = vehicleHistoryRef.current[bussiId];
+      let bearing = v.position.bearing;
+  
+      if (prevVeh) {
+        const distMeters = getApproxDistanceMeters(prevVeh.lat, prevVeh.lng, newLat, newLng);
+        if (distMeters >= 2) {
+          if (!bearing || bearing === 0) {
+            bearing = calculateBearing(prevVeh.lat, prevVeh.lng, newLat, newLng);
+          }
+        } else {
+          bearing = bearing || prevVeh.bearing || 0;
+        }
+      } else {
+        bearing = bearing || 0;
+      }
+  
+      vehicleHistoryRef.current[bussiId] = {
+        lat: newLat,
+        lng: newLng,
+        bearing: bearing,
+        timestampMs: Date.now(),
+      };
+  
+      bufferRef.current[bussiId] = {
+        id: bussiId,
+        tripID: tripID,
+        lineNumber: getRouteShortName(tripID),
+        lat: newLat,
+        lng: newLng,
+        speed: v.position.speed ? (v.position.speed * 3.6).toFixed(0) : 0,
+        bearing: bearing,
+        label: v.vehicle?.label || tripID,
+      };
+    });
+  }
 
   const handleCloseSidebar = () => {
     setSelectedStop(null);

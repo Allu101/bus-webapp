@@ -1,12 +1,15 @@
 export const CITIES = {
-  /*helsinki: {
+  helsinki: {
     id: 'helsinki',
     displayName: 'Helsinki (HSL)',
     center: [60.1699, 24.9384],
-    zoom: 12,
-    gtfsFolder: 'helsinki',
-    mqtt_url: 'https://api.digitransit.fi/realtime/vehicle-positions/v2/hsl',
-  },*/
+    zoom: 13,
+    gtfsFolder: 'HSL',
+    gtfsUrl: 'https://infopalvelut.storage.hsldev.com/gtfs/hsl.zip',
+    mqtt_url:   'wss://mqtt.hsl.fi:443/',
+    mqtt_topic: '/hfp/v2/journey/ongoing/vp/#',
+    mqtt_format: 'hfp',
+  },
   hameenlinna: {
     id: 'hameenlinna',
     displayName: 'Hämeenlinna',

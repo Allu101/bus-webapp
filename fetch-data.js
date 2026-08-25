@@ -25,8 +25,9 @@ async function downloadAndExtractAll() {
   Object.values(CITIES).forEach(async (cityConfig) => {
     console.log(`\n--- Aloitetaan kaupunki: ${cityConfig.id.toUpperCase()} ---`);
     
+    const url = cityConfig.gtfsUrl || `https://api.digitransit.fi/routing-data/v3/waltti/${cityConfig.gtfsFolder}-gtfs.zip`;
     // Rakennetaan URL dynaamisesti kaupungin nimen mukaan
-    const url = `https://api.digitransit.fi/routing-data/v3/waltti/${cityConfig.gtfsFolder}-gtfs.zip`;
+    //const url = `https://api.digitransit.fi/routing-data/v3/waltti/${cityConfig.gtfsFolder}-gtfs.zip`;
     
     // Määritetään oma alikansio tälle kaupungille (esim. public/data/tampere)
     const cityDir = path.join(__dirname, 'dist', 'data', cityConfig.gtfsFolder);

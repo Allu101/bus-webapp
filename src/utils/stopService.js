@@ -1,4 +1,5 @@
-const API_URL = "/digitransit/routing/v2/waltti/gtfs/v1/";
+const DEFAULT_URL = "/digitransit/routing/v2/waltti/gtfs/v1/";
+const HSL_URL = "/digitransit/routing/v2/hsl/gtfs/v1/";
 
 export const fetchStopSchedule = async (stopCode, cityConfig) => {
   // Digitransit käyttää Waltti-alueella pysäkkikoodeissa etuliitettä, esim. "Tampere:3022"
@@ -36,7 +37,7 @@ export const fetchStopSchedule = async (stopCode, cityConfig) => {
   `;
 
   try {
-    const response = await fetch(API_URL, {
+    const response = await fetch(cityConfig.id == 'helsinki' ? HSL_URL : DEFAULT_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

@@ -45,7 +45,7 @@ export const getHeadingDegrees = (vehicle) => {
 
 export const createVehicleIcon = ({ line, lineNumber, tripId, vehicleId, speed, delayText, delaySeconds, heading, compactIcons, colorOverride }) => {
   const rotation = heading || 0;
-  const backgroundColor = getRouteColor(tripId);
+  const backgroundColor = getRouteColor(tripId) || '#1a4b8fe5'; // Oletusväri busseille
   //const isSmallIcon = window.innerWidth < 500;
 
   const size = compactIcons ? 30 : 46;
@@ -73,12 +73,12 @@ export const createVehicleIcon = ({ line, lineNumber, tripId, vehicleId, speed, 
       </div>
     `
     : `
-      <div style="display: flex; align-items: center; justify-content: space-between; gap: 5px; line-height: 1.1;">
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 5px; line-height: 1.1; margin-bottom: 2px;">
         <span style="flex: 1; text-align: center; font-size: 16px; font-weight: 600;">${lineNumber}</span>
-        <span style="font-size: 8px; align-self: flex-end;">#${vehicleId}</span>
+        <span style="text-align: left; font-size: 10px;">${speed ?? '-'}<span style="display:block; font-size: 10px; margin-top: -2px;">km/h</span></span>
       </div>
       <div style="display: flex; align-items: center; justify-content: space-around; gap: 2px;">
-        <span style="text-align: right; font-size: 10px;">${speed ?? '-'}<span style="display:block; font-size: 10px; margin-top: -2px;">km/h</span></span>
+        <span style="font-size: 8px; align-self: flex-end;">#${vehicleId}</span>
       </div>
     `;
 
