@@ -31,7 +31,7 @@ function VehicleSidebar({ vehicle, onClose }) {
           <strong style={{ fontSize: '18px' }}>{speed ?? '-'} km/h</strong>
         </div>
 
-        <div style={{ marginBottom: '15px', background: '#101f33', padding: '15px', borderRadius: '8px' }}>
+        {/*<div style={{ marginBottom: '15px', background: '#101f33', padding: '15px', borderRadius: '8px' }}>
           <p style={{ margin: '0 0 8px 0', color: '#8eb3ff' }}>Aikataulutilanne</p>
           {delayText ? (
             <strong style={{ fontSize: '18px', color: delayColor(delaySeconds) }}>
@@ -40,7 +40,7 @@ function VehicleSidebar({ vehicle, onClose }) {
           ) : (
             <strong style={{ fontSize: '18px', color: '#fff' }}>xxAikataulussa</strong>
           )}
-        </div>
+        </div>*/}
 
         {/* Tänne voisi myöhemmin lisätä esim. seuraavat pysäkit jos API antaa ne */}
       </div>
