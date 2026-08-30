@@ -14,7 +14,17 @@ import { CITIES } from './config/cityConfig';
 import { calculateBearing, getApproxDistanceMeters } from './utils/geoUtils';
 
 function App() {
-  const [city, setCity] = useState('tampere');
+  const [city, setCity] = useState(() => {
+    const path = window.location.pathname.replace('/', '').toLowerCase();
+    
+    for (const c of Object.values(CITIES)) {
+      if (c.id.toLowerCase() === path) {
+        return c.id;
+      }
+    }
+    return 'tampere';
+  });
+  
   const bufferRef = useRef({});
   const vehicleHistoryRef = useRef({});
 
@@ -32,6 +42,19 @@ function App() {
   const [activeStopLines, setActiveStopLines] = useState([]);
   const [coloredVehicles, setColoredVehicles] = useState({});
   const [mapBounds, setMapBounds] = useState(null);
+
+  useEffect(() => {
+    const handlePopState = () => {
+      const path = window.location.pathname.replace('/', '').toLowerCase();
+      const foundCity = Object.values(CITIES).find((c) => c.id.toLowerCase() === path);
+      if (foundCity) {
+        setCity(foundCity.id);
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
 
   useEffect(() => {
     const loadCityData = async () => {
@@ -52,6 +75,32 @@ function App() {
     };
 
     loadCityData();
+
+    const currentPath = window.location.pathname.replace('/', '').toLowerCase();
+    const citySlug = city.toLowerCase().trim();
+
+    // Päivitetään osoiterivi vain jos se on muuttunut
+    if (currentPath !== citySlug) {
+      window.history.pushState({}, '', `/${citySlug}`);
+    }
+
+    // Päivitetään Hakukoneille näkyvä sivun otsikko ja meta-kuvaus dynaamisesti!
+    const capitalizedCity = city.charAt(0).toUpperCase() + city.slice(1);
+    document.title = `Bussikartta ${capitalizedCity} – Reaaliaikaiset bussit ja aikataulut.`;
+    
+    let canonical = document.querySelector('link[rel="canonical"]');
+    if (canonical) {
+      canonical.setAttribute('href', `https://bussikartta.koodauslahtinen.fi/${citySlug}`);
+    }
+
+    // Päivitetään meta description
+    const metaDescription = document.querySelector('meta[name="description"]');
+    if (metaDescription) {
+      metaDescription.setAttribute(
+        'content', 
+        `Katso kaupungin ${capitalizedCity} bussit ja aikataulut reaaliajassa kartalla.`
+      );
+    }
 
     // Luodaan ajastin, joka tyhjentää puskurin Reactin tilaan (state) esim. x ms välein
     const flushInterval = setInterval(() => {
@@ -296,7 +345,7 @@ function App() {
         </button>
 
         <div className="city-selector">
-          <label htmlFor="city-select" className="city-label">Kaupunki:</label>
+          <label htmlFor="city-select" className="city-label"></label>
           <select
             id="city-select"
             value={city}
@@ -309,6 +358,14 @@ function App() {
               </option>
             ))}
           </select>
+          
+          <nav className="seo-city-links" style={{ display: 'none' }}>
+            {Object.values(CITIES).map((c) => (
+              <a key={c.id} href={`/${c.id}`}>
+                Bussit {c.displayName}
+              </a>
+            ))}
+          </nav>
         </div>
         
         <button 
