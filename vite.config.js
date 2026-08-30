@@ -8,5 +8,8 @@ export default defineConfig({
   },
   preview: {
     allowedHosts: true
-  }
+  },
+  optimizeDeps: {
+    exclude: ['maplibre-gl', '@maplibre/maplibre-gl-leaflet'],
+  },
 })

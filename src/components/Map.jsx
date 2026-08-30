@@ -2,6 +2,13 @@ import React, { useEffect } from 'react';
 import { MapContainer, TileLayer, useMap, useMapEvents } from 'react-leaflet';
 import StopLayer from './StopLayer';
 import VehicleMarker from './VehicleMarker';
+import * as maplibregl from 'maplibre-gl';
+import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
+
+import 'maplibre-gl/dist/maplibre-gl.css';
+import '@maplibre/maplibre-gl-leaflet';
+
+maplibregl.setWorkerUrl(workerUrl);
 
 function BusMap({ stops, onStopSelect, selectedStop, vehiclesToDisplay, coloredVehicles, compactIcons, onVehicleSelect, city: cityConfig, setMapBounds }) {
   return (
@@ -17,10 +24,8 @@ function BusMap({ stops, onStopSelect, selectedStop, vehiclesToDisplay, coloredV
       >
         <MapBoundsTracker onBoundsChange={setMapBounds} />
         <MapController center={cityConfig.center} zoom={cityConfig.zoom} />
-        <TileLayer
-          url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-          attribution='&copy; <a href="https://carto.com/attributions">CARTO</a> &amp; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-        />
+        
+        <VectorDarkTile />
 
         <StopLayer stops={stops} onStopSelect={onStopSelect} selectedStop={selectedStop} />
 
@@ -40,6 +45,22 @@ function BusMap({ stops, onStopSelect, selectedStop, vehiclesToDisplay, coloredV
       </MapContainer>
     </div>
   );
+}
+
+function VectorDarkTile() {
+  const map = useMap();
+
+  useEffect(() => {
+    const glLayer = L.maplibreGL({
+      style: 'https://tiles.openfreemap.org/styles/dark',
+    }).addTo(map);
+
+    return () => {
+      map.removeLayer(glLayer);
+    };
+  }, [map]);
+
+  return null;
 }
 
 function MapBoundsTracker({ onBoundsChange }) {
