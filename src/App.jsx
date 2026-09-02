@@ -376,18 +376,66 @@ function App() {
         </button>
       </div>
 
+      <h1 className="sr-only">Bussikartta {CITIES[city]?.displayName || 'Tampere'} bussit ja aikataulut</h1>
+
       {/* Asetuspaneeli */}
       {showSettings && (
         <div className="settings-panel">
-          <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
-            <input 
-              type="checkbox" 
-              checked={!compactIcons} 
-              onChange={(e) => setCompactIcons(!e.target.checked)} 
-              style={{ transform: 'scale(1.2)' }}
-            />
-            Näytä enemmän tietoja ajoneuvoissa ja aikataluissa.
-          </label>
+          {/* 1. ASETUKSET - OMA OSIO */}
+          <div className="settings-section">
+            <h4 className="settings-title">Asetukset</h4>
+            
+            <div className="setting-item">
+              <label className="setting-label">
+                <input 
+                  type="checkbox" 
+                  checked={!compactIcons} 
+                  onChange={(e) => setCompactIcons(!e.target.checked)} 
+                />
+                <span>Näytä enemmän tietoja ajoneuvoissa ja aikatauluissa</span>
+              </label>
+            </div>
+
+            {/* Tähän on helppo lisätä uusia asetuksia tulevaisuudessa:
+            <div className="setting-item">
+              <label className="setting-label">
+                <input type="checkbox" ... />
+                <span>Seuraava asetus</span>
+              </label>
+            </div> 
+            */}
+          </div>
+
+          <div className="settings-divider" />
+
+          {/* 2. PERUSTIEDOT - OMA OSIO */}
+          <div className="settings-section info-section">
+            <h4 className="settings-title">Tietoa palvelusta</h4>
+            <p className="info-description">
+              Reaaliaikainen joukkoliikenteen kartta- ja aikataulupalvelu.
+            </p>
+            
+            <div className="info-details">
+              <div className="info-row">
+                <span className="info-label">Reaaliaikainen data:</span>
+                 <span className="info-value">Digitransit</span>
+              </div>
+              <div className="info-row">
+                <span></span>
+                <span className="info-value">{CITIES[city].mqtt_url}{CITIES[city].mqtt_topic}</span>
+              </div>
+              <div className="info-row">
+                <span className="info-label">Päivitystila:</span>
+                <span className="info-value live-status">🟢 Reaaliaikainen</span>
+              </div>
+            </div>
+            <span className="info-description-center">
+              Sivuston ylläpito: Koodaus Lahtinen
+            </span>
+            <span className="info-description-center">
+              2026
+            </span>
+          </div>
         </div>
       )}
 
