@@ -12,6 +12,7 @@ dist
 dist-ssr
 *.local
 public/data/
+sitemap.xml
 
 # Editor directories and files
 .vscode/*
