@@ -19,6 +19,15 @@ export const CITIES = {
     mqtt_url: 'wss://mqtt.digitransit.fi:443/',
     mqtt_topic: '/gtfsrt/vp/Hameenlinna/#'
   },
+  joensuu: {
+    id: 'joensuu',
+    displayName: 'Joensuu (JOJO)',
+    center: [62.6010, 29.7636],
+    zoom: 13,
+    gtfsFolder: 'Joensuu',
+    mqtt_url: 'wss://mqtt.digitransit.fi:443/',
+    mqtt_topic: '/gtfsrt/vp/Joensuu/#'
+  },
   jyvaskyla: {
     id: 'jyvaskyla',
     displayName: 'Jyväskylä (Linkki)',
@@ -36,6 +45,15 @@ export const CITIES = {
     gtfsFolder: 'Kotka',
     mqtt_url: 'wss://mqtt.digitransit.fi:443/',
     mqtt_topic: '/gtfsrt/vp/Kotka/#'
+  },
+  kouvola: {
+    id: 'kouvola',
+    displayName: 'Kouvola',
+    center: [60.8679, 26.7042],
+    zoom: 13,
+    gtfsFolder: 'Kouvola',
+    mqtt_url: 'wss://mqtt.digitransit.fi:443/',
+    mqtt_topic: '/gtfsrt/vp/Kouvola/#'
   },
   kuopio: {
     id: 'kuopio',
@@ -63,6 +81,15 @@ export const CITIES = {
     gtfsFolder: 'Lappeenranta',
     mqtt_url: 'wss://mqtt.digitransit.fi:443/',
     mqtt_topic: '/gtfsrt/vp/Lappeenranta/#'
+  },
+  mikkeli: {
+    id: 'mikkeli',
+    displayName: 'Mikkeli',
+    center: [61.6887, 27.2721],
+    zoom: 13,
+    gtfsFolder: 'Mikkeli',
+    mqtt_url: 'wss://mqtt.digitransit.fi:443/',
+    mqtt_topic: '/gtfsrt/vp/Mikkeli/#'
   },
   oulu: {
     id: 'oulu',
