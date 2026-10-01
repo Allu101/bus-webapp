@@ -37,6 +37,15 @@ export const CITIES = {
     mqtt_url: 'wss://mqtt.digitransit.fi:443/',
     mqtt_topic: '/gtfsrt/vp/LINKKI/#'
   },
+  kajaani: {
+    id: 'kajaani',
+    displayName: 'Kajaani',
+    center: [64.2272, 27.7285],
+    zoom: 13,
+    gtfsFolder: 'Kajaani',
+    mqtt_url: 'wss://mqtt.digitransit.fi:443/',
+    mqtt_topic: '/gtfsrt/vp/Kajaani/#'
+  },
   kotka: {
     id: 'kotka',
     displayName: 'Kotka',
@@ -109,6 +118,17 @@ export const CITIES = {
     mqtt_url: 'wss://mqtt.digitransit.fi:443/',
     mqtt_topic: '/gtfsrt/vp/Pori/#'
   },
+  rauma: {
+    id: 'rauma',
+    displayName: 'Rauma',
+    center: [61.1272, 21.5113],
+    zoom: 13,
+    gtfsFolder: 'Rauma',
+    gtfsUrl: 'https://api.digitransit.fi/routing-data/v3/finland/Rauma-gtfs.zip',
+    routingEndpoint: 'finland',
+    mqtt_url: 'wss://mqtt.digitransit.fi:443/',
+    mqtt_topic: '/gtfsrt/vp/Rauma/#'
+  },
   rovaniemi: {
     id: 'rovaniemi',
     displayName: 'Rovaniemi',
@@ -117,6 +137,15 @@ export const CITIES = {
     gtfsFolder: 'Rovaniemi',
     mqtt_url: 'wss://mqtt.digitransit.fi:443/',
     mqtt_topic: '/gtfsrt/vp/Rovaniemi/#'
+  },
+  salo: {
+    id: 'salo',
+    displayName: 'Salo (Paikku)',
+    center: [60.3831, 23.1299],
+    zoom: 13,
+    gtfsFolder: 'Salo',
+    mqtt_url: 'wss://mqtt.digitransit.fi:443/',
+    mqtt_topic: '/gtfsrt/vp/Salo/#'
   },
   tampere: {
     id: 'tampere',
