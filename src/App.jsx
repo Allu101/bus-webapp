@@ -158,7 +158,7 @@ function App() {
     };
   }, [city]);
 
-  function parseHfpMessage(message, vehicleHistoryRef, bufferRef) {
+  function parseHfpMessage(message, topic, vehicleHistoryRef, bufferRef) {
     const payload = JSON.parse(message.toString());
     const vp = payload.VP;
   
@@ -191,6 +191,9 @@ function App() {
         bearing = bearing || prevVeh.bearing || 0;
       }
     }
+
+    const topicParts = topic.split('/');
+    const vehType = topicParts[6] ? topicParts[6] : 'bus';
   
     vehicleHistoryRef.current[bussiId] = {
       lat: newLat,
@@ -201,17 +204,18 @@ function App() {
   
     bufferRef.current[bussiId] = {
       id: bussiId,
-      tripID: tripID,
+      vehType: vehType,
+      tripID: `${vp.route}_${vp.dir}_${vp.oday}_${vp.start}`, // Synteettinen tripID koska trip_id:t eivät ole pysyviä HSL:ssä
       lineNumber: vp.desi || vp.route,   // "550" tai fallback "2550"
       lat: newLat,
       lng: newLng,
-      speed: vp.spd != null ? (vp.spd * 3.6).toFixed(0) : 0,
+      speed: vp.spd != null ? Math.round(vp.spd * 3.6) : 0,
       bearing: bearing,
       label: vp.desi || bussiId,
       // ── HFP-lisädata tulevaa varten ──────────────────────────────────────
-      doorOpen:   vp.drst === 1,         // true = ovet auki
-      delayS:     vp.dl ?? null,         // null jos tieto puuttuu
-      occupancy:  vp.occu ?? null,       // 0–100, null jos ei saatavilla
+      //doorOpen:   vp.drst === 1,         // true = ovet auki
+      //delayS:     vp.dl ?? null,         // null jos tieto puuttuu
+      //occupancy:  vp.occu ?? null,       // 0–100, null jos ei saatavilla
       routeId:    vp.route,              // GTFS route_id ("2550")
       // ─────────────────────────────────────────────────────────────────────
     };

@@ -109,13 +109,67 @@ function StopSidebar({ stopCode, stopName, onClose, onSelectVehicle, selectedSto
     return null;
   };
 
-  const findMatchingVehicle = (stoptime) => {
-    if (!stoptime.realtime) return null;
+ // Apufunktio: Normalisoi minkä tahansa aikaformaatin ("25:24", "2524", "01:24", "124") muotoon "0124"
+  function normalizeTripTime(timeStr) {
+    if (!timeStr) return '';
+    const clean = timeStr.replace(':', '');
+    const padded = clean.padStart(4, '0'); // Varmistaa 4 merkkiä (esim. "124" -> "0124")
+    
+    let hours = parseInt(padded.slice(0, 2), 10);
+    const minutes = padded.slice(2, 4);
 
-    return Object.values(vehicles).find(v => {
-      return stoptime.tripId?.split(':')[1] === v.tripID;
-    })
-  };
+    // Normalisoidaan vuorokauden yli menevät tunnit (esim. 25 -> 01, 26 -> 02)
+    hours = hours % 24;
+
+    return `${hours.toString().padStart(2, '0')}${minutes}`;
+  }
+
+  // Purkaa auton tripID:n ("1081_1_2026-08-31_18:24" tai "1081_1_2026-09-01_01:24")
+  function getVehicleTripKey(tripID) {
+    if (!tripID) return null;
+    const cleanId = tripID.replace(/^HSL:/, '');
+    const parts = cleanId.split('_');
+    if (parts.length < 4) return null;
+
+    const route = parts[0];
+    const direction = parts[1];
+    const rawTime = parts[parts.length - 1]; // Lähtöaika on aina viimeisenä
+
+    return `${route}_${direction}_${normalizeTripTime(rawTime)}`;
+  }
+
+  // Purkaa pysäkin tripId:n ("HSL:1081_20260828_Ma_1_1824" tai "HSL:1081_20260828_1_2524")
+  function getStopTripKey(tripId) {
+    if (!tripId) return null;
+    const cleanId = tripId.replace(/^HSL:/, '');
+    const parts = cleanId.split('_');
+    if (parts.length < 4) return null;
+
+    const route = parts[0];
+    const rawTime = parts[parts.length - 1];   // Lähtöaika on aina viimeisenä
+    const direction = parts[parts.length - 2]; // Suunta on toiseksi viimeisenä
+
+    return `${route}_${direction}_${normalizeTripTime(rawTime)}`;
+  }
+
+  // Mätsäysfunktio
+  function findMatchingVehicle(stoptime) {
+    if (selectedCityConfig.id === 'helsinki') {
+      const stopKey = getStopTripKey(stoptime.tripId);
+      if (!stopKey) return null;
+
+      return Object.values(vehicles).find(vehicle => {
+        const vehicleKey = getVehicleTripKey(vehicle.tripID);
+        return vehicleKey === stopKey;
+      });
+    } else {
+      if (!stoptime.realtime) return null;
+
+      return Object.values(vehicles).find(v => {
+        return stoptime.tripId?.split(':')[1] === v.tripID;
+      });
+    }
+  }
 
   const toggleLineFilter = (lineShortName) => {
     setSelectedLines(prev => 
@@ -266,8 +320,8 @@ function StopSidebar({ stopCode, stopName, onClose, onSelectVehicle, selectedSto
                       onClick={() => onSelectVehicle(liveVehicle.monitoredVehicleJourney)}
                       style={{ color: '#8eb3ff', fontSize: '11px', marginTop: '4px', cursor: 'pointer', textDecoration: 'underline' }}
                     >
-                      #{liveVehicle.id}
-                      <span style={{ 
+                      #{liveVehicle.id.toString().split('/').pop()}
+                      {/*<span style={{ 
                         background: '#203a5c', 
                         padding: '2px 6px', 
                         borderRadius: '4px', 
@@ -275,9 +329,8 @@ function StopSidebar({ stopCode, stopName, onClose, onSelectVehicle, selectedSto
                         fontSize: '11px',
                         marginLeft: '5px'
                       }}>
-                        {liveVehicle.id}
-                        {/*{getStopDistance(liveVehicle) || `${liveVehicle.monitoredVehicleJourney.speed} km/h`}*/}
-                      </span>
+                        {{getStopDistance(liveVehicle) || `${liveVehicle.monitoredVehicleJourney.speed} km/h`}}
+                      </span>*/}
                     </div>
                   )}
                 </div>

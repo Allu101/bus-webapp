@@ -9,6 +9,13 @@ export const CITIES = {
     mqtt_url:   'wss://mqtt.hsl.fi:443/',
     mqtt_topic: '/hfp/v2/journey/ongoing/vp/#',
     mqtt_format: 'hfp',
+    vehColors: {
+      bus: '#007ac9',     // HSL Sininen (bussit)
+      tram: '#00985f',    // HSL Vihreä (ratikat)
+      metro: '#ff6319',  // HSL Oranssi (metro)
+      ferry: '#00b9e4',   // HSL Vaaleansininen (lautta)
+      train: '#8c4799'     // HSL Violetti (lähijunat)
+    }
   },
   hameenlinna: {
     id: 'hameenlinna',

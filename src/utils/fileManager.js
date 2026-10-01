@@ -1,3 +1,5 @@
+import { CITIES,  } from '../config/cityConfig.js';
+
 // Käytetään Map-rakennetta, koska se on optimoitu raskaaseen avain-arvo -hakuun
 const dataCache = new Map();
 let currentCachedCity = null;
@@ -96,12 +98,30 @@ const splitCsvLine = (line) => {
   return line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
 };
 
+// Apufunktio merkkijonojen turvalliseen siivoamiseen (poistaa ", \r ja välilyönnit)
+const cleanStr = (val) => (val ? String(val).replace(/["\r]/g, '').trim() : '');
+
 export const getRouteShortName = (tripId) => {
-  if (!tripId || !dataCache.has(tripId)) return null;
-  return dataCache.get(tripId)['routeName'] || null;
+  const cleanId = cleanStr(tripId);
+  if (!cleanId || !dataCache.has(cleanId)) return null;
+  return dataCache.get(cleanId)?.routeName || null;
 };
 
-export const getRouteColor = (tripId) => {
-  if (!tripId || !dataCache.has(tripId)) return null;
-  return dataCache.get(tripId)['color'] || '#1a4b8fe5';
+export const getRouteColor = (tripId, vehType) => {
+  //Jos kaupungilla (esim. HSL) on tyyppikohtainen värikartta, käytetään sitä
+  if (vehType) {
+    const hslCity = CITIES['helsinki'];
+    const mode = (vehType || '');
+    if (hslCity?.vehColors && hslCity.vehColors[mode]) {
+      return hslCity.vehColors[mode];
+    }
+  }
+
+  // 2. Muut alueet: käytetään static datasta saatua reitin väriä
+  const cleanId = cleanStr(tripId);
+  if (!cleanId || !dataCache.has(cleanId)) return null;
+  const color = dataCache.get(cleanId)?.color;
+
+  if (color && color === '#') return '#1a4b8fe5';
+  return color;
 };
