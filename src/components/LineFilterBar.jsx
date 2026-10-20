@@ -30,7 +30,7 @@ function LineFilterBar({ activeLines, selectedLines, toggleLineVisibility, toggl
             borderRadius: '20px',
             border: '1px solid #4f7dea',
             backgroundColor: someSelected ? '#3f6fe8' : COLORS.bgHidden,
-            color: someSelected ? '#ffffff' : '#8eb3ff',
+            color: someSelected ? '#f8fbff' : '#5f7b9f',
             cursor: 'pointer',
             fontSize: '13px',
             fontWeight: 'bold',
@@ -62,7 +62,7 @@ function LineFilterBar({ activeLines, selectedLines, toggleLineVisibility, toggl
                 padding: '6px 12px',
                 borderRadius: '15px',
                 border: `2px solid ${borderColor}`,
-                backgroundColor: isSelected ? mainColor : COLORS.bgHidden,
+                backgroundColor: isActive ? mainColor : COLORS.bgHidden,
                 color: isActive ? '#f8fbff' : '#5f7b9f', // Himmennetään teksti jos piilotettu
                 cursor: 'pointer',
                 fontSize: '14px',

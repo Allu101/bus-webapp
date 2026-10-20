@@ -26,8 +26,6 @@ async function downloadAndExtractAll() {
     console.log(`\n--- Aloitetaan kaupunki: ${cityConfig.id.toUpperCase()} ---`);
     
     const url = cityConfig.gtfsUrl || `https://api.digitransit.fi/routing-data/v3/waltti/${cityConfig.gtfsFolder}-gtfs.zip`;
-    // Rakennetaan URL dynaamisesti kaupungin nimen mukaan
-    //const url = `https://api.digitransit.fi/routing-data/v3/waltti/${cityConfig.gtfsFolder}-gtfs.zip`;
     
     // Määritetään oma alikansio tälle kaupungille (esim. public/data/tampere)
     const cityDir = path.join(__dirname, 'dist', 'data', cityConfig.gtfsFolder);
@@ -57,12 +55,10 @@ async function downloadAndExtractAll() {
           fs.writeFileSync(outputFile, entry.getData());
           console.log(` Tallennettu: dist/data/${cityConfig.gtfsFolder}/${fileName}`);
         } else {
-          console.warn(`⚠️ Varoitus: Tiedostoa ${fileName} ei löytynyt ${cityConfig.gtfsFolder}-paketista.`);
+          console.log(`X Varoitus: Tiedostoa ${fileName} ei löytynyt ${cityConfig.gtfsFolder}-paketista.`);
         }
       }
-
       console.log(`Kaupunki ${cityConfig.gtfsFolder} valmis!`);
-
     } catch (error) {
       // Käytetään try-catchia silmukan sisällä, jotta yhden kaupungin virhe (esim. väärä url/nimi)
       // ei kaada koko ajoa, vaan skripti jatkaa muiden kaupunkien lataamista.

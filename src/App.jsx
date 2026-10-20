@@ -7,7 +7,6 @@ import Map from './components/Map';
 import LineFilterBar from './components/LineFilterBar';
 import VehicleSidebar from './components/VehicleSidebar';
 import StopSidebar from './components/StopSidebar';
-import StopLayer from './components/StopLayer';
 import { fetchStops, fetchLines } from './utils/httpRequests';
 import { initStaticData, getRouteShortName } from './utils/fileManager';
 import { CITIES } from './config/cityConfig';
@@ -57,16 +56,12 @@ function App() {
   }, []);
 
   useEffect(() => {
-    const loadCityData = async () => {
-      // 1. Alustetaan kyseisen kaupungin reittivälimuisti (trips)
-      await initStaticData(CITIES[city]);
-      
-      // 2. Haetaan kyseisen kaupungin pysäkit tekstitiedostosta
-      const stopsData = await fetchStops(CITIES[city]);
+    const loadCityData = async (cityConfig) => {
+      await initStaticData(cityConfig);
+      const stopsData = await fetchStops(cityConfig);
       setStops(stopsData);
+      fetchLines(cityConfig).then(setLines).catch(err => console.error("Linjavirhe:", err));
 
-      fetchLines(CITIES[city]).then(setLines).catch(err => console.error("Linjavirhe:", err));
-      
       setSelectedStop(null);
       setVehicles({});
       setSelectedLines(new Set())
@@ -74,7 +69,8 @@ function App() {
       vehicleHistoryRef.current = {};
     };
 
-    loadCityData();
+    const cityConfig = CITIES[city];
+    loadCityData(cityConfig);
 
     const currentPath = window.location.pathname.replace('/', '').toLowerCase();
     const citySlug = city.toLowerCase().trim();
@@ -85,8 +81,7 @@ function App() {
     }
 
     // Päivitetään Hakukoneille näkyvä sivun otsikko ja meta-kuvaus dynaamisesti!
-    const capitalizedCity = city.charAt(0).toUpperCase() + city.slice(1);
-    document.title = `Bussikartta ${capitalizedCity} – Reaaliaikaiset bussit ja aikataulut.`;
+    document.title = `Bussikartta ${cityConfig?.displayName || ''} – Reaaliaikaiset bussit ja aikataulut.`;
     
     let canonical = document.querySelector('link[rel="canonical"]');
     if (canonical) {
@@ -98,7 +93,7 @@ function App() {
     if (metaDescription) {
       metaDescription.setAttribute(
         'content', 
-        `Katso kaupungin ${capitalizedCity} bussit ja aikataulut reaaliajassa kartalla.`
+        `Bussikartta näyttää ${cityConfig?.possessiveName} bussit kartalla ja sekä pysäkkien aikataulut reaaliajassa.`
       );
     }
 
@@ -111,7 +106,6 @@ function App() {
         const kertyneetBussit = bufferRef.current;
         bufferRef.current = {};
 
-        // Päivitetään Reactin state YHDELLÄ renderöinnillä
         setVehicles((prevBussit) => {
           return {
             ...prevBussit,
@@ -126,10 +120,10 @@ function App() {
     //const MQTT_URL = 'wss://mqtt.digitransit.fi:443/';
     
     console.log('Yhdistetään MQTT-palvelimeen...');
-    const client = mqtt.connect(CITIES[city].mqtt_url);
+    const client = mqtt.connect(cityConfig.mqtt_url);
 
     client.on('connect', () => {
-      const topic = CITIES[city].mqtt_topic;
+      const topic = cityConfig.mqtt_topic;
       
       client.subscribe(topic, (err) => {
         if (!err) console.log(`Tilattu kanava: ${topic}`);
@@ -138,8 +132,8 @@ function App() {
 
     client.on('message', (topic, message) => {
       try {
-        if (CITIES[city].mqtt_format === 'hfp') {
-          parseHfpMessage(message, vehicleHistoryRef, bufferRef);
+        if (cityConfig.mqtt_format === 'hfp') {
+          parseHfpMessage(message, topic, vehicleHistoryRef, bufferRef);
         } else {
           parseGtfsRtMessage(message, vehicleHistoryRef, bufferRef);
         }
@@ -264,7 +258,7 @@ function App() {
         lineNumber: getRouteShortName(tripID),
         lat: newLat,
         lng: newLng,
-        speed: v.position.speed ? (v.position.speed * 3.6).toFixed(0) : 0,
+        speed: v.position.speed ? Math.round(v.position.speed * 3.6) : 0,
         bearing: bearing,
         label: v.vehicle?.label || tripID,
       };
@@ -284,7 +278,6 @@ function App() {
 
   // 3. Kun pysäkkipalkista klikataan "Näytä bussi kartalla"
   const handleLinkToVehicle = (vehicle) => {
-    console.log("vehicle select: ", vehicle)
     setSelectedStop(null);
     setSelectedVehicle(vehicle);
     setColoredVehicles({});
@@ -345,7 +338,7 @@ function App() {
           className={`nav-btn ${showFilters ? 'active' : ''}`}
           onClick={() => { setShowFilters(!showFilters); setShowSettings(false); }}
         >
-          {showFilters ? 'Sulje Linjat' : 'Suodata Linjoja'}
+          {showFilters ? 'Suodata Linjoja' : 'Suodata Linjoja'}
         </button>
 
         <div className="city-selector">
@@ -376,7 +369,7 @@ function App() {
           className={`nav-btn ${showSettings ? 'active' : ''}`}
           onClick={() => { setShowSettings(!showSettings); setShowFilters(false); }}
         >
-          Asetukset ⚙️
+          Asetukset / Info
         </button>
       </div>
 

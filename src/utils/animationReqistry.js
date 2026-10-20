@@ -3,7 +3,7 @@ const registry = new Map();
 let animFrameId = null;
 let sharedMap = null;
 
-const ANIM_KESTO = 850;
+const ANIM_KESTO = 1100;
 
 function tick(now) {
   let aktiivisia = 0;

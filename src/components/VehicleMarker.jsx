@@ -1,6 +1,6 @@
 import React, { memo, useMemo, useEffect, useRef } from 'react';
 import { Marker, useMap } from 'react-leaflet';
-import { createVehicleIcon, formatDelay, parseDelaySeconds, getHeadingDegrees } from '../utils/vehicleHelpers';
+import { createVehicleIcon, formatDelay, parseDelaySeconds } from '../utils/vehicleHelpers';
 import { rekisteroiBussi, poistaBussi, kaynnistaBussiAnimaatio } from '../utils/animationReqistry';
 
 const VehicleMarker = memo(function VehicleMarker({ vehicle, onSelect, compactIcons, colorOverride }) {
@@ -43,27 +43,26 @@ const VehicleMarker = memo(function VehicleMarker({ vehicle, onSelect, compactIc
     kaynnistaBussiAnimaatio(vehicle.id);
   }, [lat, lng]);
 
-  const tripId = vehicle.tripID;
   const lineId = vehicle.lineRef || '-';
-  const vehicleId = vehicle.id.split('_').pop();
   const speed = vehicle.speed;
   const lineNumber = vehicle.lineNumber;
 
-  const delaySeconds = parseDelaySeconds(vehicle.delay);
-  const delayText = formatDelay(vehicle.delay);
-  const heading = getHeadingDegrees(vehicle);
+  //const delaySeconds = parseDelaySeconds(vehicle.delay);
+  //const delayText = formatDelay(vehicle.delay);
+  const heading = vehicle.bearing || 0;
   
   const icon = useMemo(() => createVehicleIcon({ 
     line: lineId, 
     lineNumber,
-    tripId,
-    vehicleId,
+    tripId: vehicle.tripID,
+    vehicleId: vehicle.id.split('_').pop(),
     speed, 
-    delayText, 
-    delaySeconds, 
+    /*delayText, 
+    delaySeconds,*/
     heading, 
     compactIcons,
-    colorOverride
+    colorOverride,
+    vehType: vehicle.vehType
   }), [
     lineId,
     lineNumber,

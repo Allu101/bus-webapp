@@ -2,6 +2,7 @@ export const CITIES = {
   helsinki: {
     id: 'helsinki',
     displayName: 'Helsinki (HSL)',
+    possessiveName: 'Helsingin / HSL-alueen',
     center: [60.1699, 24.9384],
     zoom: 13,
     gtfsFolder: 'HSL',
@@ -20,6 +21,7 @@ export const CITIES = {
   hameenlinna: {
     id: 'hameenlinna',
     displayName: 'Hämeenlinna',
+    possessiveName: 'Hämeenlinnan',
     center: [60.9944, 24.4667],
     zoom: 13,
     gtfsFolder: 'Hameenlinna',
@@ -29,6 +31,7 @@ export const CITIES = {
   joensuu: {
     id: 'joensuu',
     displayName: 'Joensuu (JOJO)',
+    possessiveName: 'Joensuun',
     center: [62.6010, 29.7636],
     zoom: 13,
     gtfsFolder: 'Joensuu',
@@ -38,6 +41,7 @@ export const CITIES = {
   jyvaskyla: {
     id: 'jyvaskyla',
     displayName: 'Jyväskylä (Linkki)',
+    possessiveName: 'Jyväskylän',
     center: [62.242600, 25.747300],
     zoom: 13,
     gtfsFolder: 'LINKKI',
@@ -47,6 +51,7 @@ export const CITIES = {
   kajaani: {
     id: 'kajaani',
     displayName: 'Kajaani',
+    possessiveName: 'Kajaanin',
     center: [64.2272, 27.7285],
     zoom: 13,
     gtfsFolder: 'Kajaani',
@@ -56,6 +61,7 @@ export const CITIES = {
   kotka: {
     id: 'kotka',
     displayName: 'Kotka',
+    possessiveName: 'Kotkan',
     center: [60.4664, 26.9458],
     zoom: 13,
     gtfsFolder: 'Kotka',
@@ -65,6 +71,7 @@ export const CITIES = {
   kouvola: {
     id: 'kouvola',
     displayName: 'Kouvola',
+    possessiveName: 'Kouvolan',
     center: [60.8679, 26.7042],
     zoom: 13,
     gtfsFolder: 'Kouvola',
@@ -74,6 +81,7 @@ export const CITIES = {
   kuopio: {
     id: 'kuopio',
     displayName: 'Kuopio',
+    possessiveName: 'Kuopion',
     center: [62.8924, 27.6782],
     zoom: 13,
     gtfsFolder: 'Kuopio',
@@ -83,6 +91,7 @@ export const CITIES = {
   lahti: {
     id: 'lahti',
     displayName: 'Lahti',
+    possessiveName: 'Lahden',
     center: [60.9817, 25.6590],
     zoom: 13,
     gtfsFolder: 'Lahti',
@@ -92,6 +101,7 @@ export const CITIES = {
   lappeenranta: {
     id: 'lappeenranta',
     displayName: 'Lappeenranta/Imatra',
+    possessiveName: 'Lappeenrannan ja Imatran',
     center: [61.0587, 28.1887],
     zoom: 13,
     gtfsFolder: 'Lappeenranta',
@@ -101,6 +111,7 @@ export const CITIES = {
   mikkeli: {
     id: 'mikkeli',
     displayName: 'Mikkeli',
+    possessiveName: 'Mikkelin',
     center: [61.6887, 27.2721],
     zoom: 13,
     gtfsFolder: 'Mikkeli',
@@ -110,6 +121,7 @@ export const CITIES = {
   oulu: {
     id: 'oulu',
     displayName: 'Oulu',
+    possessiveName: 'Oulun',
     center: [65.021545, 25.469885],
     zoom: 13,
     gtfsFolder: 'OULU',
@@ -119,6 +131,7 @@ export const CITIES = {
   pori: {
     id: 'pori',
     displayName: 'Pori',
+    possessiveName: 'Porin',
     center: [61.4833, 21.8000],
     zoom: 13,
     gtfsFolder: 'Pori',
@@ -128,6 +141,7 @@ export const CITIES = {
   rauma: {
     id: 'rauma',
     displayName: 'Rauma',
+    possessiveName: 'Rauman',
     center: [61.1272, 21.5113],
     zoom: 13,
     gtfsFolder: 'Rauma',
@@ -139,6 +153,7 @@ export const CITIES = {
   rovaniemi: {
     id: 'rovaniemi',
     displayName: 'Rovaniemi',
+    possessiveName: 'Rovaniemen',
     center: [66.5039, 25.7294],
     zoom: 13,
     gtfsFolder: 'Rovaniemi',
@@ -148,6 +163,7 @@ export const CITIES = {
   salo: {
     id: 'salo',
     displayName: 'Salo (Paikku)',
+    possessiveName: 'Salon',
     center: [60.3831, 23.1299],
     zoom: 13,
     gtfsFolder: 'Salo',
@@ -157,6 +173,7 @@ export const CITIES = {
   tampere: {
     id: 'tampere',
     displayName: 'Tampere (Nysse)',
+    possessiveName: 'Tampereen / Nysse-alueen',
     center: [61.4978, 23.7610],
     zoom: 13,
     gtfsFolder: 'tampere',
@@ -166,6 +183,7 @@ export const CITIES = {
   turku: {
     id: 'turku',
     displayName: 'Turku (Föli)',
+    possessiveName: 'Turun / Föli-alueen',
     center: [60.4518, 22.2666],
     zoom: 13,
     gtfsFolder: 'FOLI',
@@ -175,6 +193,7 @@ export const CITIES = {
   vaasa: {
     id: 'vaasa',
     displayName: 'Vaasa',
+    possessiveName: 'Vaasan',
     center: [63.0951, 21.6165],
     zoom: 13,
     gtfsFolder: 'Vaasa',

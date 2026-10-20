@@ -39,13 +39,9 @@ export const delayColor = (delaySeconds) => {
   return COLORS.onTime;
 };
 
-export const getHeadingDegrees = (vehicle) => {
-  return vehicle.bearing || 0;
-};
-
-export const createVehicleIcon = ({ line, lineNumber, tripId, vehicleId, speed, delayText, delaySeconds, heading, compactIcons, colorOverride }) => {
+export const createVehicleIcon = ({ line, lineNumber, tripId, vehicleId, speed, /*delayText, delaySeconds,*/ heading, compactIcons, colorOverride, vehType }) => {
   const rotation = heading || 0;
-  const backgroundColor = getRouteColor(tripId) || '#1a4b8fe5'; // Oletusväri busseille
+  const backgroundColor = getRouteColor(tripId, vehType) || '#1a4b8fe5'; // Oletusväri busseille
   //const isSmallIcon = window.innerWidth < 500;
 
   const size = compactIcons ? 30 : 46;
