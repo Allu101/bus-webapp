@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import 'leaflet/dist/leaflet.css';
 import './styles/App.css';
 import mqtt from 'mqtt';
@@ -8,7 +8,9 @@ import LineFilterBar from './components/LineFilterBar';
 import VehicleSidebar from './components/VehicleSidebar';
 import StopSidebar from './components/StopSidebar';
 import { fetchStops, fetchLines } from './utils/httpRequests';
+import { fetchVehicleRoute } from './utils/stopService';
 import { initStaticData, getRouteShortName } from './utils/fileManager';
+import { getVehicleColor } from './utils/vehicleHelpers';
 import { CITIES } from './config/cityConfig';
 import { calculateBearing, getApproxDistanceMeters } from './utils/geoUtils';
 
@@ -36,6 +38,7 @@ function App() {
   const [showSettings, setShowSettings] = useState(false);
   const [compactIcons, setCompactIcons] = useState(true);
   const [selectedVehicle, setSelectedVehicle] = useState(null);
+  const [selectedVehicleRoute, setSelectedVehicleRoute] = useState(null);
   const [selectedStop, setSelectedStop] = useState(null);
 
   const [activeStopLines, setActiveStopLines] = useState([]);
@@ -63,6 +66,7 @@ function App() {
       fetchLines(cityConfig).then(setLines).catch(err => console.error("Linjavirhe:", err));
 
       setSelectedStop(null);
+      setSelectedVehicle(null);
       setVehicles({});
       setSelectedLines(new Set())
       bufferRef.current = {};
@@ -148,6 +152,28 @@ function App() {
     };
   }, [city]);
 
+  useEffect(() => {
+    if (!selectedVehicle) {
+      return undefined;
+    }
+
+    const controller = new AbortController();
+
+    fetchVehicleRoute(selectedVehicle, CITIES[city], controller.signal)
+      .then((route) => setSelectedVehicleRoute(route ? { ...route, vehicleId: selectedVehicle.id, city } : null))
+      .catch((error) => {
+        if (error.name !== 'AbortError') {
+          console.error('Ajoneuvon reitin haku epäonnistui:', error);
+        }
+      });
+
+    return () => controller.abort();
+  }, [selectedVehicle, city]);
+
+  const routeForSelectedVehicle = selectedVehicle && selectedVehicleRoute?.vehicleId === selectedVehicle.id && selectedVehicleRoute?.city === city
+    ? selectedVehicleRoute
+    : null;
+
   function parseHfpMessage(message, topic, vehicleHistoryRef, bufferRef) {
     const payload = JSON.parse(message.toString());
     const vp = payload.VP;
@@ -204,6 +230,7 @@ function App() {
       //delayS:     vp.dl ?? null,         // null jos tieto puuttuu
       //occupancy:  vp.occu ?? null,       // 0–100, null jos ei saatavilla
       routeId:    vp.route,              // GTFS route_id ("2550")
+      tripIdIsSynthetic: true,
       // ─────────────────────────────────────────────────────────────────────
     };
   }
@@ -248,6 +275,7 @@ function App() {
       bufferRef.current[bussiId] = {
         id: bussiId,
         tripID: tripID,
+        routeId: v.trip?.routeId,
         lineNumber: getRouteShortName(tripID),
         lat: newLat,
         lng: newLng,
@@ -445,6 +473,9 @@ function App() {
           coloredVehicles={coloredVehicles}
           compactIcons={compactIcons}
           onVehicleSelect={handleLinkToVehicle}
+          selectedVehicleRoute={routeForSelectedVehicle}
+          selectedVehicleId={selectedVehicle?.id}
+          selectedVehicleColor={selectedVehicle ? getVehicleColor(selectedVehicle.tripID, selectedVehicle.vehType) : null}
           city={CITIES[city]}
           setMapBounds={setMapBounds}
         />

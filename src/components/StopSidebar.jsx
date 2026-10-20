@@ -6,8 +6,30 @@ import { parseDelaySeconds } from '../utils/vehicleHelpers';
 const NEXT_VEHICLE_COLORS = ['#7cbbfa', '#4beec0', '#fae8ae', '#f5ab9b', '#a29bfe'];
 
 const UPDATE_INTERVAL = 10000;
-const TRAM_COLOR = '#da2128de';
-const BUS_COLOR = '#3f6fe8de';
+
+const getBadgeColor = (routeColor, mode, cityConfig) => {
+  const modeConfigKey = {
+    BUS: 'bus',
+    TRAM: 'tram',
+    SUBWAY: 'metro',
+    FERRY: 'ferry',
+    RAIL: 'train',
+  }[mode];
+  const configuredColor = cityConfig?.vehColors?.[modeConfigKey];
+  if (configuredColor) return configuredColor;
+
+  if (typeof routeColor === 'string' && /^#?[\da-f]{6}([\da-f]{2})?$/i.test(routeColor)) {
+    return routeColor.startsWith('#') ? routeColor : `#${routeColor}`;
+  }
+
+  return '#586273';
+};
+
+const getBadgeTextColor = (routeTextColor) => (
+  typeof routeTextColor === 'string' && /^#?[\da-f]{6}$/i.test(routeTextColor)
+    ? (routeTextColor.startsWith('#') ? routeTextColor : `#${routeTextColor}`)
+    : '#fff'
+);
 
 function StopSidebar({ stopCode, stopName, onClose, onSelectVehicle, selectedStop, setActiveStopLines, setColoredVehicles, vehicles, selectedCityConfig }) {
   const [schedule, setSchedule] = useState(null);
@@ -194,8 +216,8 @@ function StopSidebar({ stopCode, stopName, onClose, onSelectVehicle, selectedSto
     return (
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '7px', marginBottom: '8px' }}>
         {lines.map((line) => {
-          const isTram = line.mode === 'TRAM';
-          const badgeColor = isTram ? TRAM_COLOR : BUS_COLOR;
+          const badgeColor = getBadgeColor(line.color, line.mode, selectedCityConfig);
+          const badgeTextColor = getBadgeTextColor(line.textColor);
 
           const isSelected = selectedLines.includes(line.shortName);
           
@@ -209,7 +231,7 @@ function StopSidebar({ stopCode, stopName, onClose, onSelectVehicle, selectedSto
               onClick={() => toggleLineFilter(line.shortName)}
               style={{
                 background: badgeColor,
-                color: 'white',
+                color: badgeTextColor,
                 fontWeight: 'bold',
                 fontSize: '14px',
                 padding: '4px 5px', //4 ja 6 hyvä mobiili
@@ -310,7 +332,7 @@ function StopSidebar({ stopCode, stopName, onClose, onSelectVehicle, selectedSto
                 {/* Linja ja Määränpää */}
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span style={{ background: stoptime.mode === 'TRAM' ? TRAM_COLOR : BUS_COLOR, padding: '2px 8px', borderRadius: '4px', fontWeight: 'bold', fontSize: '14px' }}>
+                    <span style={{ background: getBadgeColor(stoptime.routeColor, stoptime.mode, selectedCityConfig), color: getBadgeTextColor(stoptime.routeTextColor), padding: '2px 8px', borderRadius: '4px', fontWeight: 'bold', fontSize: '14px' }}>
                       {lineNum}
                     </span>
                     <strong style={{ fontSize: '15px', maxWidth: '210px', }}>{stoptime.headsign}</strong>

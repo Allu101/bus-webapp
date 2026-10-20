@@ -1,5 +1,6 @@
-import React, { useEffect } from 'react';
-import { MapContainer, TileLayer, useMap, useMapEvents } from 'react-leaflet';
+import { useEffect } from 'react';
+import L from 'leaflet';
+import { MapContainer, CircleMarker, Polyline, Tooltip, useMap, useMapEvents } from 'react-leaflet';
 import StopLayer from './StopLayer';
 import VehicleMarker from './VehicleMarker';
 import * as maplibregl from 'maplibre-gl';
@@ -10,7 +11,7 @@ import '@maplibre/maplibre-gl-leaflet';
 
 maplibregl.setWorkerUrl(workerUrl);
 
-function BusMap({ stops, onStopSelect, selectedStop, vehiclesToDisplay, coloredVehicles, compactIcons, onVehicleSelect, city: cityConfig, setMapBounds }) {
+function BusMap({ stops, onStopSelect, selectedStop, vehiclesToDisplay, coloredVehicles, compactIcons, onVehicleSelect, selectedVehicleRoute, selectedVehicleId, selectedVehicleColor, city: cityConfig, setMapBounds }) {
   return (
     <div className="map-wrapper">
       <MapContainer
@@ -27,9 +28,13 @@ function BusMap({ stops, onStopSelect, selectedStop, vehiclesToDisplay, coloredV
         
         <VectorDarkTile />
 
-        <StopLayer stops={stops} onStopSelect={onStopSelect} selectedStop={selectedStop} />
+        {!selectedVehicleId && <StopLayer stops={stops} onStopSelect={onStopSelect} selectedStop={selectedStop} />}
 
-        {Object.values(vehiclesToDisplay).map((v, index) => {
+        {selectedVehicleRoute && <SelectedVehicleRouteLayer route={selectedVehicleRoute} color={selectedVehicleColor} />}
+
+        {Object.values(vehiclesToDisplay)
+          .filter((vehicle) => !selectedVehicleId || vehicle.id === selectedVehicleId)
+          .map((v) => {
           const vRef = v.tripID;
           const assignedColor = coloredVehicles && coloredVehicles[vRef];
           return (
@@ -44,6 +49,35 @@ function BusMap({ stops, onStopSelect, selectedStop, vehiclesToDisplay, coloredV
         })}
       </MapContainer>
     </div>
+  );
+}
+
+function SelectedVehicleRouteLayer({ route, color }) {
+  const map = useMap();
+
+  useEffect(() => {
+    if (route.coordinates.length > 1) {
+      map.fitBounds(route.coordinates, { padding: [36, 36], maxZoom: 15 });
+    }
+  }, [map, route]);
+
+  return (
+    <>
+      <Polyline
+        positions={route.coordinates}
+        pathOptions={{ color: color || '#1a4b8fe5', weight: 6, opacity: 0.9 }}
+      />
+      {route.stops.map((stop, index) => (
+        <CircleMarker
+          key={`${stop.name}-${index}`}
+          center={stop.position}
+          radius={4}
+          pathOptions={{ color: '#30343b', weight: 2, fillColor: '#fff', fillOpacity: 1 }}
+        >
+          <Tooltip>{stop.name}</Tooltip>
+        </CircleMarker>
+      ))}
+    </>
   );
 }
 
@@ -75,7 +109,7 @@ function MapBoundsTracker({ onBoundsChange }) {
 
   useEffect(() => {
     onBoundsChange(map.getBounds()); // Asetetaan alkuarvo heti
-  }, []);
+  }, [map, onBoundsChange]);
 
   return null;
 }
