@@ -192,7 +192,7 @@ function StopSidebar({ stopCode, stopName, onClose, onSelectVehicle, selectedSto
     });
 
     return (
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '7px', marginBottom: '12px' }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '7px', marginBottom: '8px' }}>
         {lines.map((line) => {
           const isTram = line.mode === 'TRAM';
           const badgeColor = isTram ? TRAM_COLOR : BUS_COLOR;
@@ -263,7 +263,7 @@ function StopSidebar({ stopCode, stopName, onClose, onSelectVehicle, selectedSto
     <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', height: '100%', boxSizing: 'border-box'}}>
       
       {/* Otsikko */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px', flexShrink: 0 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexShrink: 0 }}>
         <div>
           <h2 style={{ margin: 0, fontSize: '20px' }}>{stopName || 'Pysäkki'}</h2>
           <span style={{ color: '#8eb3ff', fontSize: '14px' }}>{stopCode}</span>
@@ -299,7 +299,7 @@ function StopSidebar({ stopCode, stopName, onClose, onSelectVehicle, selectedSto
                   alignItems: 'center', 
                   justifyContent: 'space-between', 
                   background: '#101f3376', 
-                  padding: '12px 15px', 
+                  padding: '10px 12px', 
                   borderRadius: '8px', 
                   marginBottom: '10px',
                   borderLeft: isRealtime ? '4px solid #3fc93f' : '4px solid #55667d',
@@ -313,7 +313,7 @@ function StopSidebar({ stopCode, stopName, onClose, onSelectVehicle, selectedSto
                     <span style={{ background: stoptime.mode === 'TRAM' ? TRAM_COLOR : BUS_COLOR, padding: '2px 8px', borderRadius: '4px', fontWeight: 'bold', fontSize: '14px' }}>
                       {lineNum}
                     </span>
-                    <strong style={{ fontSize: '15px' }}>{stoptime.headsign}</strong>
+                    <strong style={{ fontSize: '15px', maxWidth: '210px', }}>{stoptime.headsign}</strong>
                   </div>
                   {liveVehicle && (
                     <div 

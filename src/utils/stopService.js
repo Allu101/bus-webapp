@@ -1,5 +1,6 @@
 const DEFAULT_URL = "/digitransit/routing/v2/waltti/gtfs/v1/";
 const HSL_URL = "/digitransit/routing/v2/hsl/gtfs/v1/";
+const FIN_URL = "/digitransit/routing/v2/finland/gtfs/v1/";
 
 export const fetchStopSchedule = async (stopCode, cityConfig) => {
   // Digitransit käyttää Waltti-alueella pysäkkikoodeissa etuliitettä, esim. "Tampere:3022"
@@ -18,7 +19,7 @@ export const fetchStopSchedule = async (stopCode, cityConfig) => {
           mode
           gtfsId
         }
-        stoptimesWithoutPatterns(numberOfDepartures: 35) {
+        stoptimesWithoutPatterns(numberOfDepartures: 45) {
           scheduledDeparture
           realtimeDeparture
           realtime
@@ -26,9 +27,13 @@ export const fetchStopSchedule = async (stopCode, cityConfig) => {
           headsign
           trip {
             gtfsId
+            directionId
             route {
               shortName
               mode
+            }
+            stoptimes {
+              scheduledDeparture
             }
           }
         }
@@ -36,8 +41,10 @@ export const fetchStopSchedule = async (stopCode, cityConfig) => {
     }
   `;
 
+  const routingUrl = cityConfig.routingEndpoint === 'finland' ? FIN_URL : (cityConfig.id === 'helsinki' ? HSL_URL : DEFAULT_URL);
+
   try {
-    const response = await fetch(cityConfig.id == 'helsinki' ? HSL_URL : DEFAULT_URL, {
+    const response = await fetch(routingUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -51,6 +58,10 @@ export const fetchStopSchedule = async (stopCode, cityConfig) => {
     const json = await response.json();
 
     const stop = json.data?.stop || null;
+    if (!stop) {
+      return null;
+    }
+
     return ({
       name: stop.name,
       routes: (stop.routes || []).map(r => ({
@@ -66,7 +77,9 @@ export const fetchStopSchedule = async (stopCode, cityConfig) => {
         headsign: s.headsign,
         line: s.trip?.route?.shortName,
         mode: s.trip?.route?.mode,
-        tripId: s.trip?.gtfsId
+        tripId: s.trip?.gtfsId,
+        directionId: s.trip?.directionId,
+        originDepartureTime: s.trip?.stoptimes?.[0]?.scheduledDeparture
       }))
     });
   } catch (error) {

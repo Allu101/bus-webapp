@@ -113,11 +113,7 @@ function App() {
           };
         });
       }
-    }, 400);
-
-    // Digitransitin WSS-osoite toimii suoraan selaimessa viteseillä
-    //const MQTT_URL = 'wss://mqtt.hsl.fi:443/';
-    //const MQTT_URL = 'wss://mqtt.digitransit.fi:443/';
+    }, 1000);
     
     console.log('Yhdistetään MQTT-palvelimeen...');
     const client = mqtt.connect(cityConfig.mqtt_url);
@@ -160,18 +156,15 @@ function App() {
     if (!vp || vp.lat == null || vp.long == null) return;
   
     // Ajoneuvon yksilöivä ID: "0012/01306" (operator 4 dig / vehicle 5 dig)
-    const bussiId = `${String(vp.oper).padStart(4, '0')}/${String(vp.veh).padStart(5, '0')}`;
-  
-    // Synteettinen tripID koska trip_id:t eivät ole pysyviä HSL:ssä
-    const tripID = `${vp.route}_${vp.dir}_${vp.oday}_${vp.start}`;
-  
-    if (!bussiId || !tripID) return;
+    const bussiId = `${String(vp.oper)}/${String(vp.veh)}`;
   
     const newLat = vp.lat;
     const newLng = vp.long;   // Huom: HFP käyttää "long" eikä "lng"
   
     const prevVeh = vehicleHistoryRef.current[bussiId];
     let bearing = vp.hdg || 0;
+
+    if (prevVeh && prevVeh.lat === newLat && prevVeh.lng === newLng) return;
   
     if (prevVeh) {
       const distMeters = getApproxDistanceMeters(prevVeh.lat, prevVeh.lng, newLat, newLng);
@@ -389,7 +382,7 @@ function App() {
                   checked={!compactIcons} 
                   onChange={(e) => setCompactIcons(!e.target.checked)} 
                 />
-                <span>Näytä enemmän tietoja ajoneuvoissa ja aikatauluissa</span>
+                <span>Näytä enemmän tietoja ajoneuvoissa.</span>
               </label>
             </div>
 
@@ -409,29 +402,25 @@ function App() {
           <div className="settings-section info-section">
             <h4 className="settings-title">Tietoa palvelusta</h4>
             <p className="info-description">
-              Reaaliaikainen joukkoliikenteen kartta- ja aikataulupalvelu.
+              -Bussikartta on reaaliaikainen joukkoliikenteen kartta- ja aikataulusivu, jolla voit seurata pysäkkien aikatauluja ja ajoneuvojen sijainteja eri kaupungeissa.
+              <br/><br/>- Yläpakista voit vaihtaa kaupunkia, suodattaa näytettäviä linjoja ja valita mitä tietoja ajoneuvoissa näytetään.
+              <br/><br/>- Klikkaamalla pysäkkiä kartalla näet sen aikataulut ja seuraavana saapuvat bussit värikoodattuna saapumisjärjestyksessä.
             </p>
             
             <div className="info-details">
               <div className="info-row">
                 <span className="info-label">Reaaliaikainen data:</span>
-                 <span className="info-value">Digitransit</span>
+                 <span className="info-value live-status">Digitransit</span>
               </div>
               <div className="info-row">
                 <span></span>
-                <span className="info-value">{CITIES[city].mqtt_url}{CITIES[city].mqtt_topic}</span>
+                <span className="info-value live-status">{CITIES[city].mqtt_url}{CITIES[city].mqtt_topic}</span>
               </div>
               <div className="info-row">
-                <span className="info-label">Päivitystila:</span>
-                <span className="info-value live-status">🟢 Reaaliaikainen</span>
+                <span className="info-label">Staattinen data (pysäkit, linjat yms.):</span>
+                <span className="info-value">Haetaan 24h välein</span>
               </div>
             </div>
-            <span className="info-description-center">
-              Sivuston ylläpito: Koodaus Lahtinen
-            </span>
-            <span className="info-description-center">
-              2026
-            </span>
           </div>
         </div>
       )}
@@ -487,6 +476,11 @@ function App() {
           </div>
         )}
       </div>
+      <footer className="footer">
+        <span>
+          Sivuston ylläpito: Koodaus Lahtinen 2026
+        </span>
+      </footer>
     </div>
   );
 }

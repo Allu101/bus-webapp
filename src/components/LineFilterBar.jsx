@@ -38,8 +38,7 @@ function LineFilterBar({ activeLines, selectedLines, toggleLineVisibility, toggl
             minWidth: '120px'
           }}
         >
-          {/*allLinesHidden ? '👁️ Näytä kaikki' : '❌ Piilota kaikki'*/}
-          {someSelected ? '👁️ Näytä kaikki' : '✅ Kaikki näkyvissä'}
+          {someSelected ? '👁️ Näytä kaikki' : '👁️ Näytä kaikki'}
         </button>
 
         {/* Linjapainikkeet */}
