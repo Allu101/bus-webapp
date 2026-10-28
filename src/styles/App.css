@@ -116,6 +116,10 @@ body {
   align-self: center;
 }
 
+.footer a {
+  color: inherit;
+}
+
 .info-details {
   display: flex;
   flex-direction: column;
@@ -223,6 +227,10 @@ body {
   -webkit-font-smoothing: subpixel-antialiased;
 }
 
+.stop-hit-area {
+  pointer-events: none;
+}
+
 .sr-only {
   position: absolute;
   width: 1px;
@@ -237,6 +245,10 @@ body {
 
 /* Mobiili: Sivupalkki muuttuu Bottom Sheetiksi */
 @media (max-width: 768px) {
+  .stop-hit-area {
+    pointer-events: all;
+  }
+
   .sidebar-container { 
     position: absolute; 
     bottom: 0; 

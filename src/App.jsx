@@ -509,7 +509,7 @@ function App() {
       </div>
       <footer className="footer">
         <span>
-          Sivuston ylläpito: Koodaus Lahtinen 2026
+          Sivuston ylläpito: <a href="https://koodauslahtinen.fi" target="_blank">Koodaus Lahtinen</a> 2026
         </span>
       </footer>
     </div>

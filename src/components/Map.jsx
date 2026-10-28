@@ -28,7 +28,7 @@ function BusMap({ stops, onStopSelect, selectedStop, vehiclesToDisplay, coloredV
         
         <VectorDarkTile />
 
-        {!selectedVehicleId && <StopLayer stops={stops} onStopSelect={onStopSelect} selectedStop={selectedStop} />}
+        <StopLayer stops={stops} onStopSelect={onStopSelect} selectedStop={selectedStop} />
 
         {selectedVehicleRoute && <SelectedVehicleRouteLayer route={selectedVehicleRoute} color={selectedVehicleColor} />}
 

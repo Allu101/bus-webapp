@@ -24,20 +24,28 @@ const StopLayer = React.memo(({ stops, onStopSelect, selectedStop }) => {
 
   return (
     <>
-      {stops.map((stop, index) => {
+      {stops.map((stop) => {
         return (
-          <CircleMarker
-            key={stop.shortName}
-            center={[stop.lat, stop.lng]}
-            radius={selectedStop === stop ? 10 : 9}
-            pane="markerPane"
-            pathOptions={{ color: '#3f6fe8', opacity: 0.45, fillColor: '#3f6fe8', fillOpacity: selectedStop === stop ? 0.65 : 0.35 }}
-            eventHandlers={{
-              click: (e) => {
-                handleStopClick(stop);
-              }
-            }}
-          />
+          <React.Fragment key={stop.shortName}>
+            <CircleMarker
+              center={[stop.lat, stop.lng]}
+              radius={selectedStop === stop ? 9 : 8}
+              pane="markerPane"
+              pathOptions={{ color: '#3f6fe8', opacity: 0.45, fillColor: '#3f6fe8', fillOpacity: selectedStop === stop ? 0.65 : 0.35 }}
+              eventHandlers={{
+                click: () => handleStopClick(stop)
+              }}
+            />
+            <CircleMarker
+              center={[stop.lat, stop.lng]}
+              radius={selectedStop === stop ? 11 : 10}
+              className="stop-hit-area"
+              pathOptions={{ color: 'transparent', opacity: 0, fillColor: 'transparent', fillOpacity: 0 }}
+              eventHandlers={{
+                click: () => handleStopClick(stop)
+              }}
+            />
+          </React.Fragment>
         );
       })}
     </>
