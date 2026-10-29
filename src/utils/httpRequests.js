@@ -88,8 +88,9 @@ export const fetchLines = async (cityConfig) => {
     const headers = parseCSVLine(rows[0]);
     const idIdx = headers.indexOf('route_id');
     const shortNameIdx = headers.indexOf('route_short_name');
+    const routeTypeIdx = headers.indexOf('route_type');
     const colorIdx = headers.indexOf('route_color');
-    const textColorIdx = headers.indexOf('route_text_color');
+    //const textColorIdx = headers.indexOf('route_text_color');
 
     const linesList = [];
     const seenShortNames = new Set(); // Estetään samojen linjojen monistuminen
@@ -107,6 +108,7 @@ export const fetchLines = async (cityConfig) => {
         route_id: cols[idIdx] || '',
         route_short_name: shortName,
         name: shortName, // Täydellinen yhteensopivuus vanhaan koodiin
+        route_type: routeTypeIdx === -1 ? '' : cols[routeTypeIdx] || '',
         route_color: cols[colorIdx] || '',
       });
     }

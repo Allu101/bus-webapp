@@ -460,6 +460,7 @@ function App() {
           selectedLines={selectedLines}
           toggleLineVisibility={toggleLineVisibility}
           toggleAllLines={toggleAllLines}
+          cityConfig={CITIES[city]}
         />
       )}
 

@@ -4,8 +4,23 @@ const COLORS = {
   bgHidden: '#101f33', // Piilotetun napin tausta
 };
 
-function LineFilterBar({ activeLines, selectedLines, toggleLineVisibility, toggleAllLines }) {
+function LineFilterBar({ activeLines, selectedLines, toggleLineVisibility, toggleAllLines, cityConfig }) {
   const someSelected = selectedLines.size > 0;
+
+  const getHslModeColor = (routeType) => {
+    if (routeType === '' || routeType == null) return null;
+
+    const type = Number(routeType);
+    let mode;
+
+    if (type === 0 || (type >= 900 && type < 1000)) mode = 'tram';
+    else if (type === 1 || (type >= 400 && type < 500)) mode = 'metro';
+    else if (type === 2 || (type >= 100 && type < 200)) mode = 'train';
+    else if (type === 3 || (type >= 700 && type < 900)) mode = 'bus';
+    else if (type === 4 || (type >= 1000 && type < 1100)) mode = 'ferry';
+
+    return mode ? cityConfig?.vehColors?.[mode] : null;
+  };
 
   return (
     <div style={{
@@ -47,8 +62,10 @@ function LineFilterBar({ activeLines, selectedLines, toggleLineVisibility, toggl
           const isSelected = selectedLines.has(line);
           const isActive = !someSelected || isSelected;
 
-          const customColor = lineObj.route_color ? `#${lineObj.route_color.replace('#', '')}af` : '#0f4db5';
-          const customBorderColor = lineObj.route_color ? `#${lineObj.route_color.replace('#', '')}` : '#0f4db5';
+          const hslModeColor = cityConfig?.id === 'helsinki' ? getHslModeColor(lineObj.route_type) : null;
+          const routeColor = lineObj.route_color ? `#${lineObj.route_color.replace('#', '')}` : null;
+          const customColor = hslModeColor ? `${hslModeColor}af` : routeColor ? `${routeColor}af` : '#0f4db5';
+          const customBorderColor = hslModeColor || routeColor || '#0f4db5';
 
           const mainColor = customColor;
           const borderColor = customBorderColor;
