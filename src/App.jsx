@@ -475,7 +475,7 @@ function App() {
           compactIcons={compactIcons}
           onVehicleSelect={handleLinkToVehicle}
           selectedVehicleRoute={routeForSelectedVehicle}
-          selectedVehicleId={selectedVehicle?.id}
+          selectedVehicleLine={selectedVehicle?.lineNumber}
           selectedVehicleColor={selectedVehicle ? getVehicleColor(selectedVehicle.tripID, selectedVehicle.vehType) : null}
           city={CITIES[city]}
           setMapBounds={setMapBounds}

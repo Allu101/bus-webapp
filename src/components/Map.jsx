@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import L from 'leaflet';
-import { MapContainer, CircleMarker, Polyline, Tooltip, useMap, useMapEvents } from 'react-leaflet';
+import { MapContainer, CircleMarker, Polyline, useMap, useMapEvents } from 'react-leaflet';
 import StopLayer from './StopLayer';
 import VehicleMarker from './VehicleMarker';
 import * as maplibregl from 'maplibre-gl';
@@ -11,7 +11,8 @@ import '@maplibre/maplibre-gl-leaflet';
 
 maplibregl.setWorkerUrl(workerUrl);
 
-function BusMap({ stops, onStopSelect, selectedStop, vehiclesToDisplay, coloredVehicles, compactIcons, onVehicleSelect, selectedVehicleRoute, selectedVehicleId, selectedVehicleColor, city: cityConfig, setMapBounds }) {
+function BusMap({ stops, onStopSelect, selectedStop, vehiclesToDisplay, coloredVehicles, compactIcons,
+    onVehicleSelect, selectedVehicleRoute, selectedVehicleLine, selectedVehicleColor, city: cityConfig, setMapBounds }) {
   return (
     <div className="map-wrapper">
       <MapContainer
@@ -33,7 +34,7 @@ function BusMap({ stops, onStopSelect, selectedStop, vehiclesToDisplay, coloredV
         {selectedVehicleRoute && <SelectedVehicleRouteLayer route={selectedVehicleRoute} color={selectedVehicleColor} />}
 
         {Object.values(vehiclesToDisplay)
-          .filter((vehicle) => !selectedVehicleId || vehicle.id === selectedVehicleId)
+          .filter((vehicle) => !selectedVehicleLine || vehicle.lineNumber === selectedVehicleLine)
           .map((v) => {
           const vRef = v.tripID;
           const assignedColor = coloredVehicles && coloredVehicles[vRef];
@@ -53,14 +54,6 @@ function BusMap({ stops, onStopSelect, selectedStop, vehiclesToDisplay, coloredV
 }
 
 function SelectedVehicleRouteLayer({ route, color }) {
-  const map = useMap();
-
-  useEffect(() => {
-    if (route.coordinates.length > 1) {
-      map.fitBounds(route.coordinates, { padding: [36, 36], maxZoom: 15 });
-    }
-  }, [map, route]);
-
   return (
     <>
       <Polyline
@@ -71,11 +64,9 @@ function SelectedVehicleRouteLayer({ route, color }) {
         <CircleMarker
           key={`${stop.name}-${index}`}
           center={stop.position}
-          radius={4}
+          radius={5}
           pathOptions={{ color: '#30343b', weight: 2, fillColor: '#fff', fillOpacity: 1 }}
-        >
-          <Tooltip>{stop.name}</Tooltip>
-        </CircleMarker>
+        />
       ))}
     </>
   );
