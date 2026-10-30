@@ -28,7 +28,7 @@ body {
   background: #3f6fe8; 
   border: none; 
   color: white; 
-  padding: 8px 16px; 
+  padding: 8px 12px; 
   border-radius: 8px; 
   cursor: pointer; 
   font-weight: bold; 
@@ -195,7 +195,9 @@ body {
   background-color: #1e293b;
   color: #ffffff;
   border: 1px solid #334155;
-  padding: 8px 12px;
+  padding: 8px 8px;
+  box-sizing: border-box;
+  width: 172px;
   border-radius: 8px;
   font-size: 14px;
   font-weight: 500;
