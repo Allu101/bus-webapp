@@ -28,6 +28,9 @@ function App() {
   
   const bufferRef = useRef({});
   const vehicleHistoryRef = useRef({});
+  const defaultKeywordsRef = useRef(
+    document.querySelector('meta[name="keywords"]')?.content || ''
+  );
 
   const [vehicles, setVehicles] = useState({});
   const [stops, setStops] = useState([]);
@@ -97,8 +100,16 @@ function App() {
     if (metaDescription) {
       metaDescription.setAttribute(
         'content', 
-        `Bussikartta näyttää ${cityConfig?.possessiveName} bussit kartalla ja sekä pysäkkien aikataulut reaaliajassa.`
+        `Bussikartta palvelusta näet ${cityConfig?.possessiveName} bussit reaaliajassa kartalla sekä pysäkkien aikataulut ja linjat.`
       );
+    }
+
+    const metaKeywords = document.querySelector('meta[name="keywords"]');
+    if (metaKeywords) {
+      const keywords = cityConfig?.keywords
+        ? `${defaultKeywordsRef.current}, ${cityConfig.keywords}`
+        : defaultKeywordsRef.current;
+      metaKeywords.setAttribute('content', keywords);
     }
 
     // Luodaan ajastin, joka tyhjentää puskurin Reactin tilaan (state) esim. x ms välein
