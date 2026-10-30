@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { fetchStopSchedule, formatDigitransitTime } from '../utils/stopService';
-import { parseDelaySeconds } from '../utils/vehicleHelpers';
+import { getApproxDistanceMeters } from '../utils/geoUtils';
 
 //const NEXT_VEHICLE_COLORS = ['#3498db', '#e67e22', '#9b59b6', '#e74c3c', '#f1c40f'];
 const NEXT_VEHICLE_COLORS = ['#7cbbfa', '#4beec0', '#fae8ae', '#f5ab9b', '#a29bfe'];
@@ -15,6 +15,7 @@ const getBadgeColor = (routeColor, mode, cityConfig) => {
     FERRY: 'ferry',
     RAIL: 'train',
   }[mode];
+  
   const configuredColor = cityConfig?.vehColors?.[modeConfigKey];
   if (configuredColor) return configuredColor;
 
@@ -91,22 +92,16 @@ function StopSidebar({ stopCode, stopName, onClose, onSelectVehicle, selectedSto
   const getStopDistance = (liveVehicle) => {
     if (!liveVehicle) return null;
 
-    const calls = liveVehicle.monitoredVehicleJourney.onwardCalls;
-    if (!calls || calls.length === 0) return null;
+    const vehicleLat = Number(liveVehicle.lat);
+    const vehicleLng = Number(liveVehicle.lng);
+    const stopLat = Number(selectedStop?.lat);
+    const stopLng = Number(selectedStop?.lng ?? selectedStop?.lon);
+    if (![vehicleLat, vehicleLng, stopLat, stopLng].every(Number.isFinite)) return null;
 
-    // Etsitään valitun pysäkin indeksi onwardCalls-taulukosta
-    const targetIndex = calls.findIndex(call => call.stopPointRef === selectedStop.url);
-
-    // Jos pysäkkiä ei löydy listalta, bussi on saattanut jo ohittaa sen
-    if (targetIndex === -1) return null;
-
-    // targetIndex kertoo suoraan kuinka monta pysäkkiä on välissä ennen tätä pysäkkiä.
-    // Esim. jos targetIndex on 0, se on seuraava pysäkki (0 pysäkin päässä).
-    if (targetIndex === 0) {
-      return "🚌 Seuraava pysäkki";
-    } else {
-      return `📍 ${targetIndex} pysäkin päässä`;
-    }
+    const distanceMeters = getApproxDistanceMeters(vehicleLat, vehicleLng, stopLat, stopLng);
+    return distanceMeters < 1000
+      ? `${Math.round(distanceMeters)} m pysäkiltä`
+      : `${(distanceMeters / 1000).toFixed(1)} km pysäkiltä`;
   };
 
   // Apufunktio tarkistamaan, mikä väri tälle autolle kuuluu
@@ -335,24 +330,17 @@ function StopSidebar({ stopCode, stopName, onClose, onSelectVehicle, selectedSto
                     <span style={{ background: getBadgeColor(stoptime.routeColor, stoptime.mode, selectedCityConfig), color: getBadgeTextColor(stoptime.routeTextColor), padding: '2px 8px', borderRadius: '4px', fontWeight: 'bold', fontSize: '14px' }}>
                       {lineNum}
                     </span>
-                    <strong style={{ fontSize: '15px', maxWidth: '210px', }}>{stoptime.headsign}</strong>
+                    <strong style={{ fontSize: '15px', maxWidth: '190px', }}>{stoptime.headsign}</strong>
                   </div>
                   {liveVehicle && (
                     <div 
-                      onClick={() => onSelectVehicle(liveVehicle.monitoredVehicleJourney)}
-                      style={{ color: '#8eb3ff', fontSize: '11px', marginTop: '4px', cursor: 'pointer', textDecoration: 'underline' }}
+                      onClick={() => onSelectVehicle(liveVehicle)}
+                      style={{ color: '#8eb3ff', fontSize: '11px', marginTop: '4px', cursor: 'pointer' }}
                     >
                       #{liveVehicle.id.toString().split('/').pop()}
-                      {/*<span style={{ 
-                        background: '#203a5c', 
-                        padding: '2px 6px', 
-                        borderRadius: '4px', 
-                        color: '#fff',
-                        fontSize: '11px',
-                        marginLeft: '5px'
-                      }}>
-                        {{getStopDistance(liveVehicle) || `${liveVehicle.monitoredVehicleJourney.speed} km/h`}}
-                      </span>*/}
+                      <span style={{ marginLeft: '7px', color: '#c4d2e3', textDecoration: 'none' }}>
+                        {getStopDistance(liveVehicle) || `${liveVehicle.speed ?? '-'} km/h`}
+                      </span>
                     </div>
                   )}
                 </div>
